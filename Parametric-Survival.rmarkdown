@@ -1,0 +1,591 @@
+---
+title: "Parametric Survival Analysis"
+author: Group 3 "Dr Omar Bin Nazmi, Dr Ahmad Syahid Bin Ibrahim, Dr Mohd Hilmi Bin Mat Husain"
+format:   
+  html:
+    toc: true
+    toc-title: Contents
+    toc-location: left
+    toc-depth: 3
+    toc-expand: 1
+    number-sections: true
+    code-fold: true
+    code-summary: "Show the Code"
+    theme:
+      light: united
+      dark: cyborg
+    embed-resources: true
+editor: visual
+---
+
+```{r}
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+```
+
+
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+GET502 Analisa Data Kategorikal Lanjutan (Advanced Categorical Data Analysis) Assignment 2: Parametric Survival Analysis Models
+
+### Report Prepared By
+
+1\. Dr Omar Bin Nazmi
+
+2\. Dr Ahmad Syahid bin Ibrahim
+
+3\. Dr Muhd Hilmi Bin Mat Husain
+
+![Logo](3.png)
+
+# Introduction
+
+A researcher assembled data from Cancer Registry in Kelantan from 2008-2017 and follow up period 2018-2022 on Non Hodgkin Lymphoma patients aged 18 Years and above. This datasets contain 438 patients.The duration tracked are from the day of the notification until the date of death. The date of death is then verified with Jabatan Pendaftaran Negara to ensure the internal validity of the study. It incorporate, sociodemographic characteristic, stages of NHL, histological subtypes which are indolent, aggresive and very aggressive and chemotherapy treatment. Parametric survival analysis of this study allow estimations of survival times and prediction, however it should be proceed with caution as the exact distribution of survival time of NHL are varied.
+
+# Description of Dataset
+
+## Variables
+
+Independent Variable
+
+1.  Age categorize into Age \<59 years old coded 0, Age \> 60 years old coded 1
+2.  Gender : Female coded 0, Male coded 1
+3.  Aggressiveness : Indolent coded 0, Aggressive coded 1, Very Aggressive coded 2
+4.  Stages : Stage 1 coded 0, Stage II,III coded 1, Stage IV coded 2, Unknown coded 3
+5.  Chemotherapy : Yes coded 1, No coded 0.
+6.  Duration time to Event : Numerical, and coded in Months
+
+Dependent Variable
+
+Events : Alive or censored : 0, Death : 1
+
+# Workflow Plan
+
+## Prepare Environment
+
+
+
+```{r}
+install.packages("epiR")
+install.packages("SurvRegCensCov")
+install.packages("flexsurv")
+library(SurvRegCensCov)
+library(epiR)
+library(haven)
+library(tidyverse)
+library(dagitty)
+library(ggdag)
+library(dplyr)
+library(readxl)
+library(survminer)
+library(gtsummary)
+library(survival)
+library(survminer)
+library(flexsurv)
+library(gtsummary)
+library(gt)
+```
+
+```{r}
+Data_Survival_NHL <- read_excel("C:/Users/H P/OneDrive - The Goose and Duck/Desktop/parametric survival/Data Survival NHL1.xlsx")
+summary(Data_Survival_NHL)
+```
+
+```{r}
+
+# Define updated DAG including type
+dag <- dagitty("
+dag {
+  age -> chemo
+  age -> survival
+  stage -> chemo
+  stage -> survival
+  gender -> chemo
+  gender -> survival
+  type -> chemo
+  type -> survival
+  chemo -> survival
+}
+")
+```
+
+```{r}
+dag_tidy <- tidy_dagitty(dag) %>%
+  mutate(role = case_when(
+    name %in% c("age", "stage", "gender", "type") ~ "confounder",
+    name == "chemo" ~ "exposure",
+    name == "survival" ~ "outcome",
+    TRUE ~ "other"
+  ))
+
+```
+
+```{r}
+ggplot(dag_tidy, aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_edges() +
+  geom_dag_node(aes(fill = role), shape = 21, size = 10) +
+  geom_dag_text(color = "black") +
+  scale_fill_manual(values = c(
+    "confounder" = "skyblue",
+    "exposure" = "orange",
+    "outcome" = "tomato"
+  )) +
+  theme_minimal() +
+  labs(fill = "Variable Type", title = "DAG: Effect of Chemo on Survival in NHL")
+```
+
+
+
+Using DAG to identify all confounder.
+
+## Describe Data (Summary Table)
+
+
+
+```{r}
+
+Data_Survival_NHL <- Data_Survival_NHL %>% mutate(stagecat = as.factor(stage120stage31satge42unkown3), Agecat = as.factor(Data_Survival_NHL$Agelesstahn600morethan601), Chemocat = as.factor(`Chemotherapy 0= NO, Yes= 1, 2= unknown`), gendercat = as.factor(Data_Survival_NHL$`Sex male : 1, female 0`), IAV = as.factor(Data_Survival_NHL$`Indolent0,Aggressive1very aggressive2latest`))
+glimpse(Data_Survival_NHL)
+```
+
+```{r}
+summary_overall <- Data_Survival_NHL %>%
+  select(Agecat, stagecat, gendercat, IAV, Chemocat, duration_i_month, "Alive:0_Death:1") %>%
+  tbl_summary(
+    by = "Alive:0_Death:1",
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    )
+  ) %>%
+  add_overall()
+add_glance_source_note()
+
+summary_overall
+
+```
+
+
+
+## Kaplan Meier Survival Estimates (Non-Parametric)
+
+
+
+```{r}
+KM1 <- survfit(Surv(time = Data_Survival_NHL$duration_i_month, event = Data_Survival_NHL$`Alive:0_Death:1` == "1") ~ 1, type = "kaplan-meier", data = Data_Survival_NHL)
+summary(KM1)
+```
+
+```{r}
+ggsurvplot(KM1, data = Data_Survival_NHL, risk.table = TRUE, linetype = c(1,2), pval = TRUE)
+median_times <- surv_median(KM1)
+print(median_times)
+```
+
+
+
+## Median Survival probability using Weibull (Parametric)
+
+
+
+```{r}
+weibull_fit <- survreg(Surv(duration_i_month, Data_Survival_NHL$`Alive:0_Death:1`) ~ 1,
+                       data = Data_Survival_NHL,
+                       dist = "weibull")
+
+summary(weibull_fit)
+```
+
+```{r}
+mu <- coef(weibull_fit)
+sigma <- weibull_fit$scale
+
+weibull_median <- exp(mu) * (log(2))^sigma
+print(paste("Weibull median survival time:", round(weibull_median, 2), "months"))
+
+```
+
+```{r}
+# Kaplan-Meier estimate
+km_fit <- survfit(Surv(duration_i_month,Data_Survival_NHL$`Alive:0_Death:1`) ~ 1, data = Data_Survival_NHL)
+
+# Plot KM curve
+plot(km_fit, col = "blue", lwd = 2, xlab = "Time (months)", ylab = "Survival Probability",
+     main = "Kaplan-Meier vs Weibull")
+
+# Overlay Weibull survival curve
+curve(pweibull(x, shape = 1 / sigma, scale = exp(mu), lower.tail = FALSE),
+      from = 0, to = max(Data_Survival_NHL$duration_i_month, na.rm = TRUE),
+      col = "red", lwd = 2, add = TRUE)
+
+legend("topright", legend = c("Kaplan-Meier", "Weibull"),
+       col = c("blue", "red"), lwd = 2)
+
+```
+
+
+
+### Interpretation
+
+Kaplan-Meier estimation is more appropriate for reporting median survival time when the goal is to describe the observed data without assuming a specific hazard function, as it provides a non-parametric, assumption-free estimate that accurately reflects the empirical survival experience of the study population.
+
+## Cumulative Hazard Function Estimate
+
+
+
+```{r}
+ggsurvplot(
+  KM1,
+  fun = "cumhaz",
+  pval.method = TRUE,
+  conf.int = TRUE,
+  ggtheme = theme_light(),
+  title = "Kaplan-Meier Cumulative Hazard Function Estimate"
+)
+```
+
+```{r}
+
+epiR::epi.insthaz(KM1) %>%
+  ggplot(aes(x = time, y = hest)) + 
+  geom_smooth(color = "red", method = "loess", formula = "y ~ x") +
+  theme_light() +
+  labs(title = "Kaplan-Meier Hazard Function Estimate", 
+       x = "Time", y = "Instantaneous Hazard")
+```
+
+
+
+### Intepretation
+
+The Kaplan-Meier hazard function estimate reveals a **non-monotonic hazard pattern** over time. Initially, the hazard is **high during the early months**, indicating a greater risk of death or event soon after diagnosis or study entry. This is followed by a **period of reduced and relatively stable risk** between approximately 20 and 90 months. However, in the later period, particularly after 100 months, the hazard begins to **increase steadily**, suggesting a rising risk among long-term survivors—potentially due to disease progression, aging, or late effects of treatment.
+
+## Fitting parametric Model
+
+Parametric survival model able to describe the effect of multiple covariates on survival of NHL patient, assuming the survival time follows parametric distribution. Clinically significant covariates such as age, gender, stage of NHL and Chemotherapy treatment are included to predict survival in the following parametric survival models.
+
+
+
+```{r}
+library(survival)
+surv.mod <- Surv(time = Data_Survival_NHL$duration_i_month, event = Data_Survival_NHL$`Alive:0_Death:1` == 1)
+summary(surv.mod)
+```
+
+```{r}
+exp.mod <- survreg(surv.mod ~ Data_Survival_NHL$Agecat + Data_Survival_NHL$stagecat + Data_Survival_NHL$gendercat + Data_Survival_NHL$Chemocat + Data_Survival_NHL$IAV, data = Data_Survival_NHL, dist='exponential')
+summary(exp.mod)
+```
+
+```{r}
+tbl_regression(
+  exp.mod,
+  label = list(
+    `Data_Survival_NHL$Agecat` ~ "Age Category",
+    `Data_Survival_NHL$stagecat` ~ "Cancer Stage",
+    `Data_Survival_NHL$gendercat` ~ "Gender",
+    `Data_Survival_NHL$Chemocat` ~ "Chemotherapy Received",
+    `Data_Survival_NHL$IAV` ~ "Aggressiveness"
+  )
+) %>%
+  add_glance_source_note()
+  bold_labels() %>%
+  italicize_levels() %>%
+  as_gt() %>%
+  gt::tab_header(title = md("**Table 3. Parametric Survival Analysis Exponential Model**"))
+
+```
+
+
+
+```         
+```
+
+## Interpretation Exponential Model
+
+1.  Patients aged more than 60 years had an estimated log time ratio of −0.82 (95% CI: −1.00 to −0.59) compared to those aged 60 or younger. This corresponds to an acceleration factor (AF) of 0.44, indicating that the time to death is accelerated by 56% in older patients. The associated hazard ratio (HR) is 2.27, suggesting a 2.27-fold increase in the risk of death (p \< 0.001).
+
+2.  In terms of disease stage, patients in stage 2 or 3 had a log time ratio of 0.17 (95% CI: −0.39 to 0.73), indicating a slight delay in time to death compared to stage 1, but the result was not statistically significant (p = 0.5). Patients in stage 4 had a log time ratio of −0.85 (95% CI: −1.30 to −0.36), translating to an AF of 0.43 and an HR of 2.34, suggesting that these patients had significantly shorter survival and more than double the risk of death compared to those in stage 1 (p \< 0.001). For those with unknown stage, the log time ratio was −0.03 (95% CI: −0.48 to 0.42), with no significant difference in survival (p \> 0.9).
+
+3.  Male patients had a log time ratio of −0.50 (95% CI: −0.73 to −0.28) compared to females. This corresponds to an AF of 0.61, indicating a 39% acceleration in time to death, and a hazard ratio of 1.65, representing a 65% higher risk of death (p \< 0.001).
+
+4.  Patients who received chemotherapy had a log time ratio of 0.53 (95% CI: 0.27 to 0.78), corresponding to an AF of 1.70 and an HR of 0.59. This suggests that chemotherapy was associated with longer survival and a 41% reduction in the risk of death (p \< 0.001). Similarly, patients with unknown chemotherapy status had a log time ratio of 0.59 (95% CI: 0.20 to 0.99), with an AF of 1.80 and HR of 0.55, indicating a 45% lower mortality risk compared to those who did not receive chemotherapy (p = 0.003).
+
+5.  For Indolent, Aggressive and Very aggressive type (IAV), patients with aggressive disease had a log time ratio of 0.03 (95% CI: −0.44 to 0.49), showing no statistically significant difference in survival compared to those with indolent disease (p \> 0.9). In contrast, patients with very aggressive disease had a log time ratio of −0.82 (95% CI: −1.40 to −0.22), yielding an AF of 0.44 and HR of 2.27. This indicates a significantly faster time to death and more than double the risk of mortality compared to the indolent group (p = 0.007).
+
+
+
+```{r}
+wei.mod <- survreg(surv.mod ~ Data_Survival_NHL$Agecat + Data_Survival_NHL$stagecat + Data_Survival_NHL$gendercat + Data_Survival_NHL$Chemocat +Data_Survival_NHL$IAV, data = Data_Survival_NHL, dist='weibull')
+summary(wei.mod)
+```
+
+```{r}
+library(gtsummary)
+library(gt)
+
+tbl_regression(
+  wei.mod,
+  label = list(
+    `Data_Survival_NHL$Agecat` ~ "Age Category",
+    `Data_Survival_NHL$stagecat` ~ "Cancer Stage",
+    `Data_Survival_NHL$gendercat` ~ "Gender",
+    `Data_Survival_NHL$Chemocat` ~ "Chemotherapy Received",
+    `Data_Survival_NHL$IAV` ~ "Aggressiveness"
+  )
+) %>%
+  add_glance_source_note()
+  bold_labels() %>%
+  italicize_levels() %>%
+  as_gt() %>%
+  gt::tab_header(title = md("**Table 4. Parametric Survival Analysis Weibull Model**"))
+```
+
+
+
+## Interpretation Wei Bull Model
+
+1.  Age Category Patients aged more than 60 years had a log time ratio of −1.10 (95% CI: −1.60 to −0.63), compared to those aged 60 years or younger. This corresponds to an acceleration factor (AF) of 0.33, indicating that the time to death was shortened by 66.7%. In other words, older patients had a 3-fold increased risk of death relative to younger patients. (p \< 0.001) and suggests that older age is a strong negative predictor of survival.
+2.  Patients in Stage 2 and Stage 3 had a log time ratio of −0.01 (95% CI: −1.20 to 1.20), showing no significant difference in survival compared to Stage 0 (p \> 0.9). Those in Stage 4 had a log time ratio of −1.20 (95% CI: −2.30 to −0.20), with an acceleration factor of 0.30, suggesting a 70% faster time to death and about a 3.3-fold increase in mortality risk. (p = 0.019).
+3.  Gender Male patients had a log time ratio of −0.78 (95% CI: −1.30 to −0.30) compared to females. This translates to an acceleration factor of 0.46, meaning time to death was accelerated by 54%, with an approximate 2.2 times greater risk of death for males.(p = 0.001).
+4.  Patients who received chemotherapy had a log time ratio of 0.90 (95% CI: 0.36 to 1.40), equivalent to an acceleration factor of 2.46, meaning survival time was prolonged by 146%. These patients had about a 59% lower hazard of death, (p = 0.001).
+5.  Patients with very aggressive subtype had a log time ratio of −1.10 (95% CI: −2.40 to 0.14), suggesting a 67% shorter survival time and nearly 3 times higher risk of death than the indolent group. However, this finding did not reach statistical significance (p = 0.081), though the trend indicates potential clinical relevance.
+
+In this Weibull Accelerated Failure Time (AFT) model, the estimated scale parameter is 2.15, which corresponds to a shape parameter of approximately 0.465 (since shape = 1/scale). This value of the shape parameter being less than 1 indicates that the hazard rate decreases over time. This means that individuals have a higher risk of the event early in the observation period, and those who survive longer have progressively lower risk.
+
+The scale parameter also reflects the variability of survival times on the log scale. A value of 2.15 suggests a wide distribution of survival times among individuals, indicating considerable heterogeneity in outcomes. This pattern is typical in conditions where initial treatment response or disease severity strongly influences early survival, but long-term survivors may remain stable for extended periods.
+
+The exponential model, by definition, assumes a constant hazard over time. This is reflected in the model output where the scale is fixed at 1, implying a shape parameter of 1. In practical terms, this means that the risk of the event (e.g., death) remains the same regardless of the time that has passed. While this simplifies the modeling process, it may not accurately capture the survival dynamics in most real-world scenarios where the risk often changes over time. In contrast, the Weibull model provides greater flexibility by allowing the hazard to vary with time.
+
+
+
+```{r}
+ConvertWeibull(wei.mod,conf.level = 0.95)
+```
+
+```{r}
+wei.mod.aft <- flexsurvreg(Surv(Data_Survival_NHL$duration_i_month, Data_Survival_NHL$`Alive:0_Death:1`) ~ Data_Survival_NHL$Agecat + Data_Survival_NHL$stagecat + Data_Survival_NHL$gendercat + Data_Survival_NHL$Chemocat + Data_Survival_NHL$IAV, 
+                           data = Data_Survival_NHL, dist = 'weibull')
+wei.mod.aft
+```
+
+```{r}
+tbl_regression(wei.mod.aft) %>%
+  add_glance_source_note()
+
+```
+
+```{r}
+log.logistic.mod <- survreg(Surv(Data_Survival_NHL$duration_i_month, Data_Survival_NHL$`Alive:0_Death:1`) ~ Data_Survival_NHL$Agecat + Data_Survival_NHL$stagecat + Data_Survival_NHL$gendercat + Data_Survival_NHL$Chemocat + Data_Survival_NHL$IAV, 
+                           data = Data_Survival_NHL, dist  = 'loglogistic')
+summary(log.logistic.mod)
+tbl_regression(log.logistic.mod) %>% 
+  add_glance_source_note()
+```
+
+
+
+### Interpretation
+
+1.  The estimated scale parameter was 1.5, and since this model is log-logistic, a scale greater than 1 implies a decreasing hazard over time. This suggests that patients are at higher risk of death soon after diagnosis, with the risk diminishing over time.
+
+2.  Patients aged over 60 years (Agecat = 1) had a significantly shorter survival time, with an estimated coefficient of -0.814 (p = 0.003). This implies a 39% reduction in median survival time compared to those aged 60 years or younger.
+
+3.  Patients in Stage IV (stagecat2) had significantly shorter survival (estimate = -1.186, p = 0.031), while those in Stage I, II and Unknown did not show statistically significant differences from the reference group. Stage IV (stagecat2) patients had a more than 60% reduction in median survival time compared to the baseline.
+
+4.  Male patients (gendercat1) experienced significantly shorter survival, with an estimated coefficient of -0.976 (p \< 0.001), indicating a 63% reduction in median survival time compared to females.
+
+5.  Patients who received chemotherapy showed markedly better survival outcomes. Those in Chemocat1 had an estimated coefficient of +1.227 (p \< 0.001), indicating more than double the median survival time compared to those not receiving chemotherapy.
+
+6.  Patients with aggressive subtypes (IAV1 and IAV2) had shorter survival times, but the associations were not statistically significant (IAV1: estimate = -0.629, p = 0.231; IAV2: estimate = -1.115, p = 0.108). While IAV2 suggests a large reduction in survival time, the evidence is insufficient to confirm this with confidence
+
+
+
+```{r}
+wei.mod.ph <- flexsurvreg(Surv(Data_Survival_NHL$duration_i_month, Data_Survival_NHL$`Alive:0_Death:1`) ~ Data_Survival_NHL$Agecat + Data_Survival_NHL$stagecat + Data_Survival_NHL$gendercat + Data_Survival_NHL$Chemocat + Data_Survival_NHL$IAV, 
+                           data = Data_Survival_NHL, dist  = 'weibullPH')
+wei.mod.ph
+```
+
+```{r}
+tbl_regression(wei.mod.ph) %>% 
+  add_glance_source_note()
+```
+
+
+
+### Interpretation
+
+1.  The estimated shape parameter was 0.47, indicating that the hazard of death decreases over time—suggesting patients face the highest risk early after diagnosis.
+2.  Patients aged over 60 years (Agecat = 1) had a 68% higher hazard of death compared to those aged 60 years or younger, with a hazard ratio of 1.68 (95% CI: 1.34 to 2.11, p \< 0.001).
+3.  Patients in Stage II and III showed no significant difference in hazard compared to those in Stage I, with a hazard ratio of 1.00 (95% CI: 0.57 to 1.76). Patients in Stage IV had a significantly higher hazard of death—approximately 78% higher—compared to Stage 0 (HR = 1.79, 95% CI: 1.10 to 2.90, p ≈ 0.02).
+4.  Male patients had a 44% higher hazard of death than female patients, with a hazard ratio of 1.44 (95% CI: 1.15 to 1.80, p ≈ 0.001).
+5.  Patients who received chemotherapy (Chemocat = 1) had a 34% lower hazard of death than those who did not, with a hazard ratio of 0.66 (95% CI: 0.51 to 0.85, p = 0.001).
+6.  Those with the very aggressive subtype (IAV = 2) had a 70% higher hazard of death compared to the indolent group, but this result was not statistically significant (HR = 1.70, 95% CI: 0.94 to 3.09, p ≈ 0.07).
+
+## Model Adequacy for Weibull Distribution
+
+Weibull model is fit if the groups’ lines are parallel and linear (not flat)
+
+
+
+```{r}
+WeibullDiag(Surv(time = Data_Survival_NHL$duration_i_month, event = Data_Survival_NHL$`Alive:0_Death:1` == 1) ~ Data_Survival_NHL$Agecat, 
+            data = Data_Survival_NHL)
+```
+
+```{r}
+WeibullDiag(Surv(time = Data_Survival_NHL$duration_i_month, event = Data_Survival_NHL$`Alive:0_Death:1` == 1) ~ Data_Survival_NHL$gendercat, 
+            data = Data_Survival_NHL)
+```
+
+```{r}
+WeibullDiag(Surv(time = Data_Survival_NHL$duration_i_month, event = Data_Survival_NHL$`Alive:0_Death:1` == 1) ~ Data_Survival_NHL$stagecat, 
+            data = Data_Survival_NHL)
+```
+
+```{r}
+WeibullDiag(Surv(time = Data_Survival_NHL$duration_i_month, event = Data_Survival_NHL$`Alive:0_Death:1` == 1) ~ Data_Survival_NHL$Chemocat, 
+            data = Data_Survival_NHL)
+```
+
+```{r}
+WeibullDiag(Surv(time = Data_Survival_NHL$duration_i_month, event = Data_Survival_NHL$`Alive:0_Death:1` == 1) ~ Data_Survival_NHL$IAV, 
+            data = Data_Survival_NHL)
+```
+
+
+
+## Checking Assumption
+
+
+
+```{r}
+kmfit <- survfit(surv.mod ~ Data_Survival_NHL$Agecat + Data_Survival_NHL$gendercat + Data_Survival_NHL$Chemocat + Data_Survival_NHL$stagecat + Data_Survival_NHL$IAV )
+summary(kmfit)
+```
+
+```{r}
+plot(log(kmfit$time), log(kmfit$surv/(1-kmfit$surv)))
+```
+
+
+
+# Model Comparison
+
+### Model comparison between Cox PH and WeibullPH
+
+
+
+```{r}
+km <- survfit(Surv(duration_i_month, `Alive:0_Death:1`) ~ 1, data = Data_Survival_NHL)
+plot(km, conf.int = FALSE, lwd = 2, col = "black", xlab = "Months", ylab = "Survival Probability",
+     main = "Model Fit Comparison", xlim = c(0, max(Data_Survival_NHL$duration_i_month)))
+
+cox.mod <- coxph(Surv(duration_i_month, `Alive:0_Death:1`) ~ 
+                   Agecat + stagecat + gendercat + Chemocat + IAV,
+                 data = Data_Survival_NHL)
+cox.pred <- survfit(cox.mod)
+lines(cox.pred, col = "red", lwd = 2, lty = 2)
+
+library(flexsurv)
+weib.mod <- flexsurvreg(Surv(duration_i_month, `Alive:0_Death:1`) ~ 
+                          Agecat + stagecat + gendercat + Chemocat + IAV,
+                        data = Data_Survival_NHL, dist = "weibullPH")
+lines(weib.mod, col = "blue", lwd = 2, ci = FALSE)
+
+legend("bottomleft", 
+       legend = c("Kaplan-Meier", "Cox PH", "Weibull PH"), 
+       col = c("black", "red", "blue"), 
+       lty = c(1, 2, 1), 
+       lwd = 2)
+
+```
+
+
+
+### Interpretation
+
+The comparison shows that the **Weibull PH model (blue)** provides a closer fit to the observed survival data (Kaplan-Meier) than the Cox PH model. The **Cox model tends to overestimate survival**, particularly in the later time periods. The **Weibull model captures the rapid early decline** and individual-level variability better, supporting its suitability when the hazard is **not constant over time**.
+
+##AIC Comparison
+
+
+
+```{r}
+exp.mod_AIC <- AIC(exp.mod)
+wei.mod.aft_AIC <- AIC(wei.mod.aft)
+wei.mod.ph_AIC <- AIC(wei.mod.ph)
+log.logistic.mod_AIC <- AIC(log.logistic.mod)
+```
+
+```{r}
+aic_values <- data.frame(
+  Model = c("Weibull AFT", "Weibull PH", "Exponential", "Log-Logistic"),
+  AIC = c(wei.mod.aft_AIC, wei.mod.ph_AIC, exp.mod_AIC, log.logistic.mod_AIC)
+)
+
+print(aic_values)
+```
+
+
+
+### Interpretation
+
+Although the log-logistic model had the lowest AIC, the Weibull model was chosen for its clinical relevance and interpretability. It supports both AFT and PH frameworks and assumes a monotonic hazard, which aligns better with the disease's progression. Additionally, the Weibull model is widely used in literature and showed a good visual fit to the observed survival data.
+
+The final model are the Weibull model, the package survreg able to describe AFT only, for PH, the package flexsurvreg is better which is for both AFT and PH
+
+## Plot Survival Probability
+
+
+
+```{r}
+weib.cirr <- survreg(Surv(Data_Survival_NHL$duration_i_month, Data_Survival_NHL$`Alive:0_Death:1` == "1") ~ Agecat, data = Data_Survival_NHL, dist = 'weibull')
+summary(weib.cirr)
+```
+
+```{r}
+Data_Survival_NHL$Agecat <- factor(Data_Survival_NHL$Agecat)
+
+levels(Data_Survival_NHL$Agecat)
+
+new_Agecat <- factor("1", levels = levels(Data_Survival_NHL$Agecat))
+
+# Define percentiles for prediction (1% to 98%)
+pct <- 1:98 / 100
+
+# Make sure your Weibull model object is defined
+# Replace weib.cirr with your actual model object name, e.g., weib.mod or survreg_model
+ptime <- predict(
+  weib.cirr,  # your survreg model (fit with dist = "weibull")
+  newdata = data.frame(Agecat = new_Agecat),
+  type = "quantile",
+  p = pct,
+  se = TRUE
+)
+
+# Plot survival percentiles with 95% CI
+matplot(
+  cbind(ptime$fit, ptime$fit + 2*ptime$se.fit, ptime$fit - 2*ptime$se.fit) / 30.5,
+  1 - pct,
+  type = "l", lty = c(1, 2, 2), col = 1,
+  xlab = "Time (Months)",
+  ylab = "Survival Probability",
+  main = "Parametric Survival Curve with 95% CI (Agecat = 1)"
+)
+
+```
+
+
+
+### Interpretation
+
+The parametric survival curve for patients in Age \> 60 years old shows a **rapid decline in survival probability during the first few months**, with survival dropping below **20% by approximately 5 months**. The curve flattens beyond that point, indicating that very few patients survive long-term. The **narrow 95% confidence interval** early in the timeline suggests high precision of the estimate initially, while the curve’s shape reflects **a high early mortality risk** among patients in this age group.
+
+# References Please visit out Github
+
+git\@github.com:omaralfaruqi/Parametric-Survival-Analysis.git
+

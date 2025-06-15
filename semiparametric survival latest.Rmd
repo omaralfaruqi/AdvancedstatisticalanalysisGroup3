@@ -1,0 +1,608 @@
+---
+title: "Survival Semi-Parametric Analysis"
+date: "2025-06-15"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    theme: united
+
+---
+
+# Survival Analysis : Semi-parametric model
+
+Team Member :
+
+![Logo](3.png)
+
+**Dr Omar bin Nazmi**
+
+**Dr Ahmad Syahid bin Ibrahim**
+
+**Dr Mohd Hilmi bin Mat Husain**
+
+# Introduction
+
+Survival analysis provides estimation of the association between risk factors and time-to-evet and make prediction of subject's survival probabilities. Cox propotional hazard model or cox refression is a semiparametric model used to investigare the association between outcomes and predictors factors. unlike parametric model,in Cox PH , it holds assumption of :
+
+1.  Hazard ratio is constant over time or in other words, the hazard for one individual is proportional to the hazard for other individuals
+2.  Another assumption is the independence of survival time. The occurrence or timing of an event for one individual should not influence that of another.
+
+This exercise will provide practical on Semiparametric model for Survival Analysis. The analysis will be using data : stroke_fatality.dta The event variable is status( dead vs censored)
+
+# Survival analysis : Semi-parametric model
+
+# Prepare environment
+
+Load Package
+
+```{r}
+library(haven)
+library(broom)
+library(tidyverse)
+library(gtsummary)
+library(ggplot2)
+library(corrplot)
+```
+
+Load package for survival Analysis
+
+```{r}
+library(survival)
+library(survminer)
+```
+
+# Read Data
+
+```{r}
+library(haven)
+stroke_fatalityssss <- read_dta("stroke_fatality.dta")
+glimpse(stroke_fatalityssss)
+```
+
+```{r}
+stroke.fatality <- stroke_fatalityssss %>%
+  mutate_if(is.labelled, ~as_factor(.))
+glimpse(stroke.fatality)
+```
+
+Change format to factor ( for variable dm2cat, hpt2cat, dyslipid2cat)
+
+```{r}
+library(dplyr)
+
+stroke.fatality1 <- stroke.fatality %>%
+  mutate(
+    dm2cat = as_factor(dm2cat),
+    hpt2cat = as_factor(hpt2cat),
+    dyslipid2cat = as_factor(dyslipid2cat)
+  )
+
+```
+
+```{r}
+str(stroke.fatality1$dm2cat)
+levels(stroke.fatality1$dm2cat)
+class(stroke.fatality1$dm2cat)
+
+```
+
+```{r}
+stroke.fatality1 %>% 
+  tbl_summary()
+```
+
+```{r}
+glimpse(stroke.fatality1)
+```
+
+# Select variables
+
+Variable selection
+
+we will select importance variables for analysis. A multi-centered prospective cohort study has reported that determinants for stroke fatality involve patient-level and system-level determinants (Sarfo, Fred S et al. 2023).
+
+selected variable :
+
+1\. important variables for stroke fatality (Sarfo, Fred S et al. 2023 )
+
+2\. Complete dataset
+
+variable selected : 1. time : duration (days) = DOD-DOA 2. status3b : status of the patient at discharge : dead or alive 3. age2 (numerical): age in years 4. gcs (numerical ) : gcs score 5. sex (categorical): Male, female 6.icd10cat : category if diagnosis ICD10 : inschaemia(CI) and others, haemorhagic 7. dm2cat : DM status ( categorical, 0 = No, 1 = Yes) 8. hpt2cat : Hypertension status ( categorical, 0 = No, 1 = Yes ) 9. dyslipid2cat : Dsylipidemia status ( categorical, 0 = No, 1 = Yes )
+
+Outcome event of interest( status ) : Dead
+
+```{r}
+stroke1 <- stroke.fatality1 %>%
+  dplyr::select(time, status3b, age2, gcs, sex, dm2cat, icd10cat2, hpt2cat, dyslipid2cat)
+glimpse(stroke1)
+```
+
+```{r}
+summary(stroke1)
+```
+
+Missing data in view of missing a single value of data in covariate gcs, we will do imputation using single imputation method.
+
+```{r}
+stroke1$gcs[is.na(stroke1$gcs)] <- mean(stroke1$gcs, na.rm = TRUE)
+```
+
+```{r}
+summary(stroke1)
+tbl_summary(stroke1, 
+  by = status3b, 
+  statistic = list(all_continuous() ~ "{mean} ({sd})", all_categorical() ~ "{n} ({p}%)")
+) %>%
+  modify_header(label = "**Variable**") %>%
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Status**") %>%
+  modify_caption("Summary of Data by Status")
+```
+
+# Kaplan-Meir survival estimates for overall
+
+```{r}
+KM1 <- survfit(Surv(time = time, status3b == 'dead') ~ 1, 
+               type = "kaplan-meier", data = stroke1)
+summary(KM1)
+```
+
+The survival probabilites can be presented in plot .
+
+```{r}
+ggsurvplot(KM1, data = stroke1, risk.table = TRUE, linetype = c(1,2), pval = TRUE)
+```
+
+# Kaplan-Meier estimates for groups
+
+1.  Sex
+
+```{r}
+KM1.sex <- survfit(Surv(time = time, status3b == 'dead') ~ sex, 
+                     type = "kaplan-meier", data = stroke1)
+summary(KM1.sex)
+```
+
+Among males, the survival probability falls below 0.5 between days 12 and 14, indicating an estimated median survival time of approximately 13 to 14 days. In contrast, females show a more gradual decline in survival, with the probability dropping below 0.5 between days 18 and 25, suggesting a longer median survival time of around 20 to 22 days. This indicates that female patients had better overall survival compared to males during the follow-up period.
+
+Plot : sex
+
+```{r}
+ggsurvplot(KM1.sex, data = stroke1, risk.table = TRUE, 
+           linetype = c(1,2), pval = TRUE)
+```
+
+2.  Dm status 0 = No 1 = Yes
+
+```{r}
+KM1.dm <- survfit(Surv(time = time, status3b == 'dead') ~ dm2cat, 
+                     type = "kaplan-meier", data = stroke1)
+summary(KM1.dm)
+```
+
+```{r}
+ggsurvplot(KM1.dm, data = stroke1, risk.table = TRUE, 
+           linetype = c(1,2), pval = TRUE)
+```
+
+3.  Hpt 0 = No 1 = Yes
+
+```{r}
+KM1.hpt <- survfit(Surv(time = time, status3b == 'dead') ~ hpt2cat, 
+                     type = "kaplan-meier", data = stroke1)
+summary(KM1.hpt)
+```
+
+```{r}
+ggsurvplot(KM1.hpt, data = stroke1, risk.table = TRUE, 
+           linetype = c(1,2), pval = TRUE)
+```
+
+4.  Dyslipidemia status 0 = No 1 = Yes
+
+```{r}
+KM1.dyslipid <- survfit(Surv(time = time, status3b == 'dead') ~ dyslipid2cat, 
+                     type = "kaplan-meier", data = stroke1)
+summary(KM1.dyslipid)
+```
+
+```{r}
+ggsurvplot(KM1.dyslipid, data = stroke1, risk.table = TRUE, 
+           linetype = c(1,2), pval = TRUE)
+```
+
+5.  Diagnosis status
+
+```{r}
+KM1.icd10 <- survfit(Surv(time = time, status3b == 'dead') ~ icd10cat2, 
+                     type = "kaplan-meier", data = stroke1)
+summary(KM1.icd10)
+```
+
+```{r}
+ggsurvplot(KM1.icd10, data = stroke1, risk.table = TRUE, 
+           linetype = c(1,2), pval = TRUE)
+```
+
+# Estimate survival Probabilitis
+
+estimation of the survival probabality at that specific time of follow-up:
+
+```{r}
+stroke1 %>% group_by(status3b) %>% 
+  summarize(min.dur = min(time), max.dur = max(time))
+```
+
+```{r}
+summary(KM1, times = c(20, 40, 60))
+```
+
+Comparing the survival estimates between levels of a group (categorical) variable Log Rank Test
+
+The null hypothesis : survival estimates between levels or groups are not different.
+
+1.  Sex
+
+```{r}
+logrank.sex <- survdiff(Surv(time = time, status3b == 'dead') ~ sex, 
+                        data = stroke1, rho = 0)
+logrank.sex
+```
+
+The survival estimates between the gender group are not different( p value : 0.2)
+
+2.  Dm status
+
+```{r}
+logrank.dm <- survdiff(Surv(time = time, status3b == 'dead') ~ dm2cat, 
+                        data = stroke1, rho = 0)
+logrank.dm
+```
+
+The survival estimates between the DM status are not different( p value : 0.1)
+
+3.  HPT
+
+```{r}
+logrank.hpt <- survdiff(Surv(time = time, status3b == 'dead') ~ hpt2cat, 
+                        data = stroke1, rho = 0)
+logrank.hpt
+```
+
+The survival estimates between the hpt status are not different( p value : 0.9)
+
+3.  Dyslipidemia status
+
+```{r}
+logrank.dyslipid <- survdiff(Surv(time = time, status3b == 'dead') ~ hpt2cat, 
+                        data = stroke1, rho = 0)
+logrank.dyslipid
+```
+
+The survival estimates between the dyslipidemia status are not different( p value : 0.9)
+
+4.  icd10category
+
+```{r}
+logrank.icd10cat <- survdiff(Surv(time = time, status3b == 'dead') ~ icd10cat2, 
+                        data = stroke1, rho = 0)
+logrank.icd10cat
+```
+
+The Survival estimates between stroke type ( CI/other and haemorhagic ) are different at the level of 5% significance (p-value = 0.009).
+
+# Cox propotional hazard (PH) regression
+
+Univariable Simple Cox PH Regression
+
+1.  For GCS ( numerical )
+
+```{r}
+cox.gcs <- coxph(Surv(time = time, event = status3b == 'dead') ~ gcs, 
+                 data = stroke1)
+summary(cox.gcs)
+```
+
+The simple cox PH model with covariate gcs shows that with each one unit increase in gcs, the crude log hazard for death changes by factor of -0.192. The pvalue is significant. exponentiating the log HR, the simple cox shows that with increase one unot of gcs, the crude risk for death decreases for about 17% and the decrease are between 95% CI ( 0.774, 0.8798).
+
+2.  Age
+
+```{r}
+cox.age <- coxph(Surv(time = time, event = status3b == 'dead') ~ age2, 
+                 data = stroke1)
+summary(cox.age)
+```
+
+The simple cox PH model with covariate age shows that with each one unit increase in age, the crude log hazard for death changes by factor of 1.025.
+
+3.  For sex ( categorical)
+
+```{r}
+cox.sex <- coxph(Surv(time = time, event = status3b == 'dead') ~ sex, 
+                 data = stroke1)
+summary(cox.sex)
+```
+
+in simple cox PH regression , the covariote sex is not significant ( p-value 0.174)
+
+4.  For stroke type
+
+```{r}
+cox.icd10cat2 <- coxph(Surv(time = time, event = status3b == 'dead') ~ icd10cat2, 
+                 data = stroke1)
+summary(cox.icd10cat2)
+```
+
+The simple Cox Ph model woth covariate stroke type shows that patients with haemorhagic stroke has the crude log hazard for death 2.208 times compared to patients with inchaemic type/others ( pvalue = 0.014) by exponentiate the hazard log hazard, we will get hazard ratio.
+
+```{r}
+tidy(cox.icd10cat2,
+     exponentiate = TRUE,
+     conf.int = TRUE)
+```
+
+Patients with haemorhagic stroke shas Hazard ration of 2.208 compared to patient with inschameic stroke ( pvalue = 0.0104 and 95%CI 1.205,4.047)
+
+5.  Hypertension
+
+```{r}
+cox.hpt2cat <- coxph(Surv(time = time, event = status3b == 'dead') ~ hpt2cat, 
+                 data = stroke1)
+summary(cox.hpt2cat)
+```
+
+6.  Dyslipidemia
+
+```{r}
+cox.dyslipid2cat <- coxph(Surv(time = time, event = status3b == 'dead') ~ dyslipid2cat, 
+                 data = stroke1)
+summary(cox.dyslipid2cat)
+```
+
+7.  Diabetes
+
+```{r}
+cox.dm2cat <- coxph(Surv(time = time, event = status3b == 'dead') ~ dm2cat, 
+                 data = stroke1)
+summary(cox.dm2cat)
+```
+
+for hypertension status, DM status , and dyslipidemia status , the covariates are not significant.
+
+# Multivariable Cox PH
+
+1.  Main Effect Model
+
+```{r}
+cox.mv <- coxph(Surv(time = time, event = status3b == 'dead') ~  gcs  +
+                age2 + icd10cat2, data = stroke1)
+summary(cox.mv)
+```
+
+2.  Model with Interaction
+
+Numerical and Numerical
+
+```{r}
+cox.gcs.age <- coxph(Surv(time = time, event = status3b == 'dead') ~  gcs  +
+                age2 + icd10cat2 + gcs:age2, data = stroke1)
+summary(cox.gcs.age)
+```
+
+Numerical and Categorical
+
+```{r}
+cox.gcs.icd10cat2 <- coxph(Surv(time = time, event = status3b == 'dead') ~  gcs  +
+                age2 + icd10cat2 + gcs:icd10cat2, data = stroke1)
+summary(cox.gcs.icd10cat2)
+```
+
+# Model Comparison
+
+```{r}
+anova(cox.mv, cox.gcs.age)
+```
+
+```{r}
+anova(cox.mv, cox.gcs.icd10cat2)
+```
+
+In model comparison , we compare between model with interaction term. We observe the same result ( p value \>0.05). We decide not to add interaction term in the model (parsimonous model)
+
+# Model Checking Plotting Kaplan-Meier
+
+1.  Linearity in hazard assumption For numerical
+
+Age2 and gcs
+
+```{r}
+ggcoxfunctional(Surv(time, status3b == "dead") ~ age2 + gcs, data = stroke1)
+
+```
+
+Linearity assummed
+
+# Propotional Hazard Assumption
+
+The main assumption in Cox PH regression is that the estimated hazard is proportional across the follow-up time.
+
+1.  KM Method
+
+```{r}
+prop.h.km <- cox.zph(cox.mv, transform = 'km', global = TRUE)
+prop.h.km
+```
+
+```{r}
+plot(prop.h.km)
+```
+
+2.  The Rank Method
+
+```{r}
+prop.h.rank <- cox.zph(cox.mv, transform = 'rank')
+prop.h.rank
+```
+
+```{r}
+plot(prop.h.rank)
+```
+
+# Model Checking
+
+final model : cox.mv
+
+1.  Residuals
+
+We can use residuals to assess for model fitness. They are useful to check for overall model fitness or for individual subjects fitness. The residuals can indicate the presence of outliers or influential subjects in our model.
+
+residuals() can be calculated to produce martingale, deviance, score or Schoenfeld residuals for a Cox proportional hazards model.
+
+1.1 Score Residuals
+
+```{r}
+score.cox <- resid(cox.mv, type = "score")
+head(score.cox)
+```
+
+1.2 Martingale residuals
+
+```{r}
+marti.cox <- resid(cox.mv, type = "martingale")
+head(marti.cox)
+```
+
+1.3 Schoenfeld residuals
+
+```{r}
+schoen.cox <- resid(cox.mv, type = "schoenfeld")
+head(schoen.cox)
+```
+
+1.4 Scaled Schoenfeld residuals
+
+```{r}
+sschoen.cox <- resid(cox.mv, type = "scaledsch")
+head(sschoen.cox)
+```
+
+1.5 dfbeta
+
+```{r}
+dfbeta.cox <- resid(cox.mv, type = "dfbeta")
+head(dfbeta.cox)
+```
+
+2.  Residual Plot Plot to identify the outliers using score residuals
+
+```{r}
+plot(stroke1$gcs, score.cox[,2], ylab="Score residuals")
+```
+
+```{r}
+plot(stroke1$age2, score.cox[,1], ylab="Score residuals")
+```
+
+Plot to identify the outliers using martingale residuals
+
+```{r}
+plot(stroke1$age2, marti.cox, ylab = "Martingale residuals for age")
+```
+
+```{r}
+plot(marti.cox, type = 'h', main = "Martingale residuals", ylab = "dfbetas")
+```
+
+Or , we use the augment() function to do similar tasks as above. The resulting datasets consists of - the fitted variable
+
+-   the std error of the fitted variable
+
+-   the residuals
+
+```{r}
+pred.cox.mv <- augment(cox.mv, data = stroke1)
+pred.cox.mv
+```
+
+# Prediction
+
+From the Cox PH , we can predict 1. The linear predictor 2. The risk 3. The expected number of events given the covariates and follow up time
+
+We make a new data and name them as newdata using expand.grid() function:
+
+our model
+
+```{r}
+summary(cox.mv)
+```
+
+```{r}
+tidy(cox.mv)
+```
+
+```{r}
+stroke1 %>% select(gcs, age2, icd10cat2) %>% summary()
+```
+
+```{r}
+new_data <- expand.grid(gcs = c(5, 10, 12),
+                        age2 = c(40, 50, 60),
+                        icd10cat2 = c('CI,Others', 'Haemorrhagic'))
+                       
+new_data
+```
+
+# Linear Predictor
+
+model : cox.mv
+
+```{r}
+predict(cox.mv, newdata = new_data, type = 'lp')
+```
+
+```{r}
+augment(cox.mv, newdata = new_data)
+```
+
+# Risk score
+
+```{r}
+predict(cox.mv, newdata = new_data, type = 'risk')
+```
+
+# The expected number of events for a given follow-up time
+
+```{r}
+new_data2 <- expand.grid(status3b = 'dead', time = c(20, 40, 50))
+new_data2
+```
+
+Combine new_data and new_data2
+
+```{r}
+new_data3 <- data.frame(new_data, new_data2)
+head(new_data3)
+```
+
+the predicted number of events are
+
+```{r}
+pred.exp <- predict(cox.mv, newdata = new_data3, type = 'expected')
+cbind(new_data3, pred.exp)
+```
+
+Conclusion final table for multivariable cox PH
+
+```{r}
+tbl_regression(cox.mv, exponentiate = TRUE)
+```
+
+Interpretation :
+
+1.  Every 1 unit increase in gcs, the patients has 17% lower risk of dying , adjusted to age and gcs ( pvalue\<0.001, 95% CI 0.78, 0.89)
+
+2.  Every 1-year increase in age is expected to increase the hazard of dying by 1.03 times (pvalue 0.005, 95% CI 1.01, 1.06), adjusted to gcs and stroke type
+
+3.  The simple Cox Ph model with covariate stroke type shows that patients with haemorhagic stroke has the crude log hazard for death 2.208 times compared to patients with inchaemic type/others ( pvalue = 0.014) by exponentiate the hazard log hazard, we will get hazard ratio. However, when being fitted to final model, covariate stroke type loses its significance.

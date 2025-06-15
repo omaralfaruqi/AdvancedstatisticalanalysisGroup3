@@ -1,0 +1,760 @@
+---
+title: "Multinomial and Ordinal Logistic Regression"
+author: "Dr Omar bin Nazmi, Dr Ahmad Syahid bin Ibrahim, Dr Mohd Hilmi bin Mat Husain"
+format:   
+  html:
+    toc: true
+    toc-title: Contents
+    toc-location: left
+    toc-depth: 3
+    toc-expand: 1
+    number-sections: true
+    code-fold: true
+    code-summary: "Show the Code"
+    theme:
+      light: united
+      dark: cyborg
+    embed-resources: true
+editor: visual
+---
+
+![Logo](3.png)
+
+## 1.Background
+
+This report analyzes factors associated with fasting blood sugar (FBS) levels, categorized as Normal, Prediabetic and Diabetes, using multinomial and ordinal logistic regression. The aim is to identify which variables significantly predict elevated FBS levels.
+
+This study involved 4340 individuals to investigate the factors associated with fasting blood sugar (FBS) levels. Given the importance of early detection and management of impaired glucose metabolism and diabetes, this study aimed to identify predictors that significantly increase the risk of elevated FBS. The focus was on understanding how demographic factors (such as age, living in rural/urban area and gender) and clinical factors (such as hypertension, waist circumference, LDL and body mass index) relate to an individual’s likelihood of being classified as having Normal, Prediabetic or Diabetic fasting blood sugar levels.
+
+Data analysis was conducted using RStudio IDE for R software.
+
+## 2.Loading Libraries
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(gtsummary)
+library(VGAM)
+library(broom)
+library(ggplot2)
+library(haven)
+library(here)
+```
+
+## 3.Dataset
+
+The dataset `datamssm_a.csv` contains measurements from 4340 individuals
+
+#### **Reading data, Data Preparation and Variable Recoding**
+
+The primary outcome variable was fasting blood sugar (FBS), which was categorized into three clinically relevant groups based on established guidelines. Individuals with FBS less than 5.6 mmol/L were classified as having “normal” blood sugar levels. Those with FBS values ranging from 5.6 to 6.9 mmol/L were categorized as “prediabetes,” while individuals with FBS of 7.0 mmol/L or higher were classified as having “diabetes.” A new variable, `cat_fbs`, was created to represent these categories and was recoded as a factor in R using the following level order:
+
+-   **Normal**: coded as 2 , **Prediabetes**: coded as 1 , **Diabetes**: coded as **0.** This ordering ensures that “normal” serves as the reference category in the multinomial logistic regression model.
+
+Several predictor variables were also recoded using the `factor()` function in R with explicitly defined levels to establish consistent coding and appropriate reference groups:
+
+-   **Hypertension (`hpt`)**: Recoded as “no” = **0** and “yes” = **1**.
+
+-   **Gender (`gender`)**: Recoded as “female” = **0** and “male” = **1**.
+
+-   **Area of residence (`crural`)**: Recoded as “rural” = **0** and “urban” = **1**.
+
+-   **Smoking status (`smoking`)**: Recoded into three levels: “never smoked” = **0**, “quitted smoking” = **1**, and “still smoking” = **2**.
+
+-   In addition to these categorical predictors, **Body Mass Index (BMI), age, waist circumference, LDL** was calculated as a continuous variable using the standard formula:
+
+The BMI variable was retained in its continuous form to preserve the variability of measurements and to enable detailed modeling of its association with FBS categories.
+
+```{r}
+dat <- read_csv("datamssm_a.csv") %>%
+  clean_names() %>%
+  mutate(
+    # Outcome variable
+    cat_fbs = case_when(
+      fbs < 5.6 ~ "normal",
+      fbs >= 5.6 & fbs < 7.0 ~ "prediabetes",
+      fbs >= 7.0 ~ "diabetes"
+    ),
+    cat_fbs = factor(cat_fbs, levels = c("diabetes", "prediabetes", "normal")),
+
+    # Recode predictors
+    hpt = factor(hpt, levels = c("no", "yes")),
+    dmdx = factor(dmdx, levels = c("no", "yes")),
+    gender = factor(gender, levels = c("female", "male")),
+    crural = factor(crural, levels = c("rural", "urban")),
+    smoking = factor(smoking, 
+                     levels = c("never smoked", "quitted smoking", "still smoking")),
+
+    # Create BMI
+    bmi = weight / (height^2)
+  )
+
+```
+
+#### Seeing data structure
+
+```{r}
+glimpse(dat)
+
+```
+
+```{r}
+summary(dat)
+```
+
+#### Checking outcome distribution
+
+```{r}
+summary(dat$cat_fbs)
+
+```
+
+## 4.Descriptive Table
+
+```{r}
+dat %>%
+  select(cat_fbs, age, hpt, smoking, waist, hba1c, fbs, ldl,
+         gender, crural, bmi) %>%
+  tbl_summary(
+    by = cat_fbs,
+    missing = "ifany",
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    )
+  ) %>%
+  add_overall() %>%
+  modify_caption("**Table 1: Characteristics of Participants by Fasting Blood Sugar Category**")
+
+
+```
+
+**Table 1** presents the summary statistics of the study participants across the three fasting blood sugar (FBS) categories: normal, prediabetes and diabetes. Continuous variables are presented as mean (SD), and categorical variables as frequency (%).
+
+## 5.Analysis Plan
+
+This study aims to identify the factors associated with fasting blood sugar (FBS) status, categorized into three groups: normal, prediabetes and diabetes. A multinomial logistic regression model will be used to estimate the relative risk ratios (RRR) for the predictors. The reference group for the outcome is "normal".
+
+The following predictor variables were considered based on prior evidence and clinical relevance:
+
+-   Age (continuous)
+
+-   LDL (continous)
+
+-   Waist circumference (continuous)
+
+-   Hypertension diagnosis (hpt: yes/no)
+
+-   Gender (female/male)
+
+-   Smoking status (never, quitted, still smoking)
+
+-   Residential location (crural: rural/urban)
+
+-   Body Mass Index (BMI: continuous)
+
+## 6.Model Fitting
+
+We'll use the `VGAM::vglm()` function and set `cat_fbs` as the **outcome** (reference = *diabetes*)
+
+#### 6.1 Fitting Multinomial Logistic Regression Model
+
+##### Fitmlog1; predictors are - age + ldl + waist circumference + hpt + gender + smoking + crural + bmi
+
+```{r}
+# Load required package
+library(VGAM)
+
+# Fit the model
+fitmlog1 <- vglm(cat_fbs ~ age + ldl + waist + hpt + gender + smoking + crural + bmi,
+                 family = multinomial(),
+                 data = dat)
+
+# View the result
+summary(fitmlog1)
+
+```
+
+A multinomial logistic regression model was fitted to examine the association between demographic and clinical variables and fasting blood sugar status, categorized as **diabetes**, **prediabetes**, and **normal**. The **reference group** was set as "normal." The model estimated two sets of log-odds equations:
+
+\- Log-odds of being **diabetic** versus **normal and** Log-odds of being **prediabetic** versus **normal**
+
+-   **Age** was significantly associated with increased risk for both diabetes and prediabetes. For each additional year of age, the relative risk increased by 3.1% for diabetes (β = 0.031, *p* \< 0.001) and 3.2% for prediabetes (β = 0.032, *p* \< 0.001).
+
+-   **LDL cholesterol** was significantly associated with higher odds of diabetes (β = 0.196, *p* \< 0.001), but its effect on prediabetes was only marginal (β = 0.070, *p* = 0.060).
+
+-   **Waist circumference** showed a small but statistically significant association with diabetes (β = 0.018, *p* = 0.005), but not with prediabetes (β = 0.004, *p* = 0.428).
+
+-   **Hypertension** was a strong predictor for both diabetes (β = 0.671, *p* \< 0.001) and prediabetes (β = 0.507, *p* \< 0.001), indicating individuals with hypertension had significantly increased odds of abnormal fasting blood sugar.
+
+-   **BMI** was significantly associated with increased risk for both diabetes (β = 0.049, *p* = 0.002) and prediabetes (β = 0.057, *p* \< 0.001).
+
+-   **Gender, smoking status, and place of residence** showed no significant association with fasting blood sugar categories in this model (all *p* \> 0.05), except for urban residency, which was significantly associated with lower odds of prediabetes (β = –0.180, *p* = 0.026).
+
+#### Another model was done but without place of residence to compare model with it
+
+##### Fitmlog2; predictors are - age + ldl + waist circumference + hpt + gender + smoking + bmi (without crural)
+
+```{r}
+# Load required package
+library(VGAM)
+
+# Fit the model
+fitmlog2 <- vglm(cat_fbs ~ age + ldl + waist + hpt + gender + smoking + bmi,
+                 family = multinomial(),
+                 data = dat)
+
+# View the result
+summary(fitmlog2)
+```
+
+## 7.Model Fit Assessment and Comparing Model
+
+```{r}
+# Deviance, Log-likelihood, AIC
+summary(fitmlog1)
+logLik(fitmlog1)
+AIC(fitmlog1)
+
+```
+
+```{r}
+AIC(fitmlog1)
+```
+
+```{r}
+AIC(fitmlog2)
+```
+
+```{r}
+lrtest(fitmlog1, fitmlog2)
+
+```
+
+A likelihood ratio test (LRT) was conducted to assess whether the inclusion of place of residence (crural: urban/rural) significantly improves the fit of the multinomial logistic regression model predicting fasting blood sugar status. Two models were compared:
+
+**Model 1** included all predictors: age, LDL, waist circumference, hypertension, gender, smoking, BMI, and place of residence. **Model 2** was identical except it excluded place of residence.
+
+The comparison showed that Model 1 had a better log-likelihood (–3390.9 vs –3394.1), and the difference in fit was statistically significant (χ² = 6.25, df = 2, p = 0.044). Thus, there is evidence at the 5% significance level that place of residence contributes meaningfully to the model in predicting fasting blood sugar categories. Therefore, the full model including the place of residence variable is preferred.
+
+## 8. Inferences, Computing RRR, p-value and 95% CI for each covariate
+
+```{r}
+#Get Coefficients and Confidence Intervals
+coef_multi <- coef(fitmlog1)
+ci_multi <- confint(fitmlog1)
+
+# Combine for table
+b_ci_multi <- cbind(coef_multi, ci_multi)
+rrr_multi <- exp(b_ci_multi)
+
+# Optional: Format nicely
+final_multi <- cbind(b_ci_multi, rrr_multi)
+colnames(final_multi) <- c("β", "Lower 95% β", "Upper 95% β",
+                           "RRR", "Lower 95% RRR", "Upper 95% RRR")
+
+round(final_multi, 3)
+
+```
+
+```{r}
+# Load required libraries
+library(knitr)
+library(kableExtra)
+library(VGAM)
+
+#  Get coefficient summary from  vglm model
+summary_fit <- summary(fitmlog1)
+coef_table <- coef(summary_fit)
+
+#  Extract estimates and standard errors
+estimates <- coef_table[, "Estimate"]
+se <- coef_table[, "Std. Error"]
+
+#  Compute confidence intervals and p-values
+lower_95_beta <- estimates - 1.96 * se
+upper_95_beta <- estimates + 1.96 * se
+rrr <- exp(estimates)
+lower_95_rrr <- exp(lower_95_beta)
+upper_95_rrr <- exp(upper_95_beta)
+z <- estimates / se
+p_value <- 2 * (1 - pnorm(abs(z)))
+
+# Create final data frame
+final_table <- data.frame(
+  β = round(estimates, 3),
+  Lower_95_β = round(lower_95_beta, 3),
+  Upper_95_β = round(upper_95_beta, 3),
+  RRR = round(rrr, 3),
+  Lower_95_RRR = round(lower_95_rrr, 3),
+  Upper_95_RRR = round(upper_95_rrr, 3),
+  p_value = ifelse(p_value < 0.001, "<0.001", round(p_value, 4))
+)
+
+#  Display table with kableExtra
+kable(final_table,
+      caption = "Table 2: Multinomial Logistic Regression – Coefficients, 95% Confidence Intervals, Relative Risk Ratios, and p-values",
+      align = "c") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+                full_width = FALSE,
+                position = "left")
+
+
+
+```
+
+Table 2 presents the estimated coefficients (β), 95% confidence intervals, p-value and corresponding Relative Risk Ratios (RRR) for the association between selected predictors and fasting blood sugar status. The outcome has three categories: diabetes, prediabetes and normal (reference category).
+
+## 9.Predicted Log-Odds & Probabilities
+
+#### 9.1 Viewing the first observation
+
+```{r}
+dat[1, c("age", "ldl", "waist", "hpt", "gender", "smoking", "crural", "bmi")]
+
+```
+
++---------------------+--------------------------------+
+| Variable            | Value                          |
++=====================+================================+
+| age                 | 70                             |
+|                     |                                |
+| waist circumference | 76                             |
+|                     |                                |
+| LDL                 | 2.69                           |
++---------------------+--------------------------------+
+| hpt                 | yes (→ 1)                      |
++---------------------+--------------------------------+
+| gender              | female (→ 0)                   |
++---------------------+--------------------------------+
+| smoking             | never smoked (→ reference = 0) |
++---------------------+--------------------------------+
+| crural              | rural (→ reference = 0)        |
++---------------------+--------------------------------+
+| bmi                 | 16.86625                       |
++---------------------+--------------------------------+
+
+#### 9.2 Plug into Logit Formulas, to get log odd, then exponentiate log odd to get odd
+
+![](images/clipboard-2267435938.png)
+
+**Log odds; diabetis vs normal**
+
+logit1= -6.758217 + (0.031458 × age) + (0.195804 × ldl) + (0.017973 × waist circumference) + (0.671392 x hpt) + (gender x 0) + (smoking x 0) + (crural x 0)+ (0.049344 × bmi) = log odd1
+
+logit1= -6.758217 + (0.031458 × 70) + (0.195804 × 2.69) + (0.017973 × 76) + (0.671392 x 1) + 0 + 0 + 0 + (0.049344 × 16.87) = -1.15994
+
+**log odd1 = -1.15994, odd = exponentiate log odd 1 = 0.3138**
+
+**Log odds; prediabetic vs normal**
+
+logit2= -4.824306 + (0.032171 × age) + (0.069602 × ldl) + (0.004336 × waist circumference) + (0.506838 x hpt) + (gender x 0) + (smoking x 0) + (crural x 0)+ (0.057083 × bmi) = Log odd2
+
+logit2= -4.824306 + (0.032171 × 70) + (0.069602 × 2.69) + (0.004336 × 76) + (0.506838 x 1) + (gender x 0) + (smoking x 0) + (crural x 0)+ (0.057083 × bmi) = -0.58554
+
+**log odd2 = -0.58554, odd = exponentiate log odd2 = 0.5569**
+
+**9.3 To calculate probablity, since this is multinomial, then total odd = 0.3138 + 0.5569 +1 = 1.8707**
+
+Now we calculate the probablity
+
+P(Diabetis) = 0.3138/1.8707 = **0.1667**
+
+P(Prediabetis) = 0.5569/1.8707 = **0.2976**
+
+P(Normal) = 1/1.8707 = **0.5347**
+
+**Cross Check**
+
+```{r}
+# Predict log-odds for the first observation
+log_odds <- predict(fitmlog1, newdata = dat[1, ], type = "link")
+
+# Predict probabilities for the first observation
+probabilities <- predict(fitmlog1, newdata = dat[1, ], type = "response")
+
+# Display log-odds
+log_odds
+
+# Display probabilities
+probabilities
+
+
+```
+
+Same with manual calculation.
+
+## 10.Result and Intepretation
+
+### **Table 3: Multinomial Logistic Regression Predicting Fasting Blood Sugar Categories (Reference: Normal)**
+
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| **Predictor**                     | **β**   | **95% CI for β** | **RRR** | **95% CI for RRR** | **p-value** |
++===================================+=========+==================+=========+====================+=============+
+| Intercept (Prediabetes vs Normal) | -6.758  | -7.585, -5.931   | 0.001   | 0.001, 0.003       | \<0.001     |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Intercept (Diabetes vs Normal)    | -4.824  | -5.488, -4.161   | 0.008   | 0.004, 0.016       | \<0.001     |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Age (Prediabetes)                 | 0.031   | 0.024, 0.039     | 1.032   | 1.024, 1.040       | \<0.001     |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Age (Diabetes)                    | 0.032   | 0.026, 0.038     | 1.033   | 1.026, 1.039       | \<0.001     |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| LDL (Prediabetes)                 | 0.196   | 0.111, 0.281     | 1.216   | 1.117, 1.324       | \<0.001     |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| LDL (Diabetes)                    | 0.07    | -0.003, 0.142    | 1.072   | 0.997, 1.153       | 0.06        |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Waist (Prediabetes)               | 0.018   | 0.005, 0.031     | 1.018   | 1.005, 1.031       | 0.0056      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Waist (Diabetes)                  | 0.004   | -0.006, 0.015    | 1.004   | 0.994, 1.015       | 0.4282      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Hypertension (Prediabetes)        | 0.671   | 0.404, 0.939     | 1.957   | 1.498, 2.556       | \<0.001     |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Hypertension (Diabetes)           | 0.507   | 0.268, 0.745     | 1.66    | 1.308, 2.107       | \<0.001     |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Male Gender (Prediabetes)         | 0.211   | -0.051, 0.473    | 1.235   | 0.950, 1.605       | 0.1147      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Male Gender (Diabetes)            | 0.186   | -0.037, 0.408    | 1.204   | 0.964, 1.504       | 0.102       |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Ex-Smoker (Prediabetes)           | -0.127  | -0.505, 0.251    | 0.881   | 0.603, 1.286       | 0.5106      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Ex-Smoker (Diabetes)              | -0.078  | -0.401, 0.245    | 0.925   | 0.670, 1.278       | 0.6375      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Current Smoker (Prediabetes)      | -0.109  | -0.445, 0.226    | 0.896   | 0.641, 1.254       | 0.5229      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Current Smoker (Diabetes)         | 0.077   | -0.196, 0.351    | 1.08    | 0.822, 1.420       | 0.5802      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Urban Residence (Prediabetes)     | -0.164  | -0.355, 0.027    | 0.849   | 0.701, 1.027       | 0.0924      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| Urban Residence (Diabetes)        | -0.18   | -0.338, -0.021   | 0.835   | 0.713, 0.979       | 0.0261      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| BMI (Prediabetes)                 | 0.049   | 0.018, 0.080     | 1.051   | 1.019, 1.084       | 0.0017      |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+| BMI (Diabetes)                    | 0.057   | 0.031, 0.083     | 1.059   | 1.031, 1.087       | \<0.001     |
++-----------------------------------+---------+------------------+---------+--------------------+-------------+
+
+\*Multinomial logistic regression was used. The outcome variable (cat_fbs) has three levels: normal (reference), prediabetes, and diabetes\
+\*A p-value \< 0.05 was considered statistically significant.\
+\*Each row contains two comparisons: (1) prediabetes vs. normal and (2) diabetes vs. normal.
+
+A multinomial logistic regression analysis was conducted to examine the association between several predictors and fasting blood sugar status, categorized as **diabetes**, **prediabetes**, and **normal** (reference category). The results are interpreted using the estimated regression coefficients (β), relative risk ratios (RRR), 95% confidence intervals (CI), and p-values.
+
+The results showed that **age** was a significant predictor of both diabetes and prediabetes. For each additional year of age, the relative risk of being diabetic (vs normal) increased by approximately 3.2% (RRR = 1.032, 95% CI: 1.024–1.040, *p* \< 0.001), and the risk of being prediabetic increased by a similar amount (RRR = 1.033, 95% CI: 1.026–1.039, *p* \< 0.001). This indicates that older individuals are more likely to have abnormal fasting blood sugar.
+
+Higher levels of **LDL cholesterol** were significantly associated with diabetes. Specifically, each unit increase in LDL was associated with a 21.6% higher risk of diabetes (RRR = 1.216, 95% CI: 1.117–1.324, *p* \< 0.001). However, LDL was not significantly associated with prediabetes (RRR = 1.072, 95% CI: 0.997–1.153, *p* = 0.060), though the association was borderline.
+
+**Waist circumference** was found to be a significant predictor of diabetes, with each unit increase associated with a 1.8% higher risk (RRR = 1.018, 95% CI: 1.005–1.031, *p* = 0.0056). This relationship was not significant for prediabetes (RRR = 1.004, 95% CI: 0.994–1.015, *p* = 0.4282).
+
+**Hypertension** was a strong and consistent predictor of abnormal blood sugar. Individuals with hypertension had nearly twice the risk of being diabetic (RRR = 1.957, 95% CI: 1.498–2.556, *p* \< 0.001) and a 66% higher risk of being prediabetic (RRR = 1.660, 95% CI: 1.308–2.107, *p* \< 0.001), compared to normotensive individuals.
+
+**Body Mass Index (BMI)** was also significantly associated with both outcomes. Each unit increase in BMI was associated with a 5.1% increase in the risk of diabetes (RRR = 1.051, 95% CI: 1.019–1.084, *p* = 0.0017) and a 5.9% increase in the risk of prediabetes (RRR = 1.059, 95% CI: 1.031–1.087, *p* \< 0.001), highlighting the influence of body composition on glycemic outcomes.
+
+Regarding **place of residence**, living in an urban area was significantly associated with a lower risk of prediabetes compared to living in rural areas (RRR = 0.835, 95% CI: 0.713–0.979, *p* = 0.0261). However, urban residence was not significantly associated with diabetes (RRR = 0.849, 95% CI: 0.701–1.027, *p* = 0.0924).
+
+In contrast, **gender** was not a significant predictor of either diabetes or prediabetes. The RRRs for males compared to females were 1.235 (95% CI: 0.950–1.605, *p* = 0.1147) for diabetes and 1.204 (95% CI: 0.964–1.504, *p* = 0.102) for prediabetes, with confidence intervals including the null value of 1.
+
+Similarly, **smoking status** did not show any statistically significant associations with fasting blood sugar categories. Whether the individual had quit smoking or was still smoking, none of the comparisons showed significant differences from non-smokers, with all p-values \> 0.5.
+
+In summary, this analysis identifies several important predictors of abnormal fasting blood sugar. Age, hypertension, BMI, and LDL levels are strong risk factors for diabetes, while age, hypertension, BMI, and urban residence are associated with prediabetes. Waist circumference is significantly related to diabetes but not prediabetes. Gender and smoking status were not significantly associated with fasting blood sugar status in this sample. These findings highlight the importance of cardiometabolic and lifestyle factors in the risk stratification for glycemic disorders.
+
+# **NOW PROCEED TO ORDINAL LOGISTIC REGRESSION**
+
+Not we will set outcome variable `cat_fbs` is ordinal (Normal \< Prediabetes \< Diabetes). We will use BMI, age, gender, hpt, smoking, and crural as predictors. The reference category is Normal (lowest FBS category).
+
+## 1.Loading required packages
+
+```{r}
+library(MASS)
+
+```
+
+## 2.Set cat_fbs as ordered factor We make the categories are treated as **ordinal** in the correct order:
+
+The outcome variable of interest was fasting blood sugar (fbs), which was transformed into an ordinal variable named `cat_fbs` with three ordered categories:
+
+-   **Normal** (fbs \< 5.6 mmol/L)
+
+-   **Prediabetes** (fbs 5.6–6.9 mmol/L)
+
+-   **Diabetes** (fbs ≥ 7.0 mmol/L)
+
+```{r}
+dat$cat_fbs <- ordered(dat$cat_fbs, levels = c("normal", "prediabetes", "diabetes"))
+
+```
+
+## 3.Fit the ordinal logistic regression model
+
+We use the `polr()` function from the **MASS** package to fit a proportional odds model
+
+An **ordinal logistic regression model** (also known as the **proportional odds model**) was fitted using the `polr()` function from the `MASS` package in R. The dependent variable was `cat_fbs`, which represents ordered categories of fasting blood sugar status (*normal*, *prediabetes*, *diabetes*). The model included the following predictors: **Age** (continuous), **Hypertension status** (`hpt`), **Gender, Smoking status, Residential area** (`crural`: rural/urban), **Body mass index** (`bmi`)
+
+```{r}
+model_ord <- polr(cat_fbs ~ age + hpt + gender + smoking + crural + bmi, data = dat, Hess = TRUE)
+
+```
+
+```{r}
+summary(dat[, c("hpt", "gender", "smoking", "crural")])
+
+```
+
+```{r}
+dat <- dat %>%
+  mutate(
+    hpt = factor(hpt),
+    gender = factor(gender),
+    smoking = factor(smoking),
+    crural = factor(crural)
+  )
+
+```
+
+```{r}
+summary(dat[, c("hpt", "gender", "smoking", "crural")])
+
+```
+
+```{r}
+model_ord <- polr(cat_fbs ~ age + hpt + gender + smoking + crural + bmi, data = dat, Hess = TRUE)
+summary(model_ord)
+
+
+```
+
+```{r}
+summary(model_ord)
+```
+
+## 4.Model Summary
+
+#### 4.1 Extracting Coefficient
+
++---------------------+-----------------+------------+-------------+--------------------+
+| Predictor           | Coef (log odds) | Std. Error | z / t-value | Significance       |
++=====================+=================+============+=============+====================+
+| `age`               | **0.03247**     | 0.00252    | 12.89       | \*\*\* significant |
++---------------------+-----------------+------------+-------------+--------------------+
+| `hpt` (yes)         | **0.49433**     | 0.09673    | 5.11        | \*\*\* significant |
++---------------------+-----------------+------------+-------------+--------------------+
+| `gender` (male)     | **0.24599**     | 0.09053    | 2.72        | \*\* significant   |
++---------------------+-----------------+------------+-------------+--------------------+
+| `smoking` (quitted) | -0.07452        | 0.13492    | -0.55       | not significant    |
++---------------------+-----------------+------------+-------------+--------------------+
+| `smoking` (still)   | -0.03397        | 0.11561    | -0.29       | not significant    |
++---------------------+-----------------+------------+-------------+--------------------+
+| `crural` (urban)    | **-0.18973**    | 0.06632    | -2.86       | \*\* significant   |
++---------------------+-----------------+------------+-------------+--------------------+
+| `bmi`               | **0.07332**     | 0.00645    | 11.36       | \*\*\* significant |
++---------------------+-----------------+------------+-------------+--------------------+
+
+#### 4.2 Computing p-value and odds ratio
+
+```{r}
+#  Coefficient table
+ctable <- coef(summary(model_ord))
+
+#  Compute p-values
+p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
+
+#  Combine with Odds Ratios
+(ctable_final <- cbind(
+  ctable,
+  "p value" = round(p, 4),
+  "OR" = round(exp(ctable[, "Value"]), 3)
+))
+
+```
+
+#### 4.3 Getting **95% Confidence Intervals** for the coefficients and ORs
+
+```{r}
+#  Compute CI for log-odds (coefficients)
+ci_logit <- confint(model_ord)
+
+# Step 5: Convert to Odds Ratio scale
+ci_OR <- exp(ci_logit)
+
+# Combine and view nicely
+OR_table <- cbind(
+  OR = round(exp(coef(model_ord)), 3),
+  CI_lower = round(ci_OR[, 1], 3),
+  CI_upper = round(ci_OR[, 2], 3)
+)
+
+print(OR_table)
+
+```
+
+```{r}
+ci_logit <- confint.default(model_ord)
+ci_OR <- exp(ci_logit)
+
+```
+
+| Variable            | OR    | 95% CI        | p-value |
+|---------------------|-------|---------------|---------|
+| Age (per year)      | 1.033 | 1.028 – 1.038 | \<0.001 |
+| Hypertension (yes)  | 1.639 | 1.356 – 1.981 | \<0.001 |
+| Gender (male)       | 1.279 | 1.070 – 1.526 | 0.0066  |
+| Smoking: Quitted    | 0.928 | 0.711 – 1.208 | 0.581   |
+| Smoking: Still      | 0.967 | 0.770 – 1.212 | 0.769   |
+| Residential (urban) | 0.827 | 0.726 – 0.942 | 0.0042  |
+| BMI (per unit)      | 1.076 | 1.063 – 1.090 | \<0.001 |
+
+## 5.Visual presentation: **ggpredict()**, **forest plot**, predicted probabilities
+
+```{r}
+
+
+library(MASS)        # For polr()
+library(ggeffects)   # For ggpredict()
+library(ggplot2)     # For plotting
+
+
+```
+
+```{r}
+library(MASS)  # Needed for polr()
+
+model_polr <- polr(cat_fbs ~ age + hpt + gender + smoking + crural + bmi, 
+                   data = dat, Hess = TRUE)
+
+
+```
+
+```{r}
+library(MASS)        # For polr()
+library(ggeffects)   # For ggpredict()
+library(ggplot2)     # For plotting
+```
+
+```{r}
+library(MASS)  # Needed for polr()
+
+model_polr <- polr(cat_fbs ~ age + hpt + gender + smoking + crural + bmi, 
+                   data = dat, Hess = TRUE)
+```
+
+```{r}
+pred_age <- ggpredict(model_polr, terms = "age [all]")
+
+plot(pred_age) +
+  labs(title = "Figure 1:Predicted Probabilities by Age",
+       x = "Age",
+       y = "Predicted Probability") +
+  theme_minimal()
+
+```
+
+As shown in this figure 1, the predicted probability of being in the *normal* FBS category **decreases steadily with age**, particularly after the age of 40. Conversely, the probabilities of being classified as *prediabetic* or *diabetic* **increase with advancing age**. The probability of being in the *diabetic* category rises sharply after the age of 50, reflecting a strong age-related risk gradient.
+
+The shaded areas represent 95% confidence intervals around the predicted probabilities. These intervals widen at the extremes of the age range, likely due to fewer observations in those age groups.
+
+This visualization supports the model finding that **age is a strong predictor** of worsening glycemic status, with a clear and progressive trend from normal to diabetes as age increases
+
+```{r}
+pred_bmi <- ggpredict(model_polr, terms = "bmi [all]")
+
+plot(pred_bmi) +
+  labs(title = "Figure 2:Predicted Probabilities by BMI",
+       x = "BMI",
+       y = "Predicted Probability") +
+  theme_minimal()
+
+```
+
+As illustrated in the figure 2 above, the probability of being classified as *normal* decreases markedly as BMI increases. This decline is most prominent between BMI values of 20 and 35. Simultaneously, the probabilities of being categorized as *prediabetic* or *diabetic* increase with rising BMI.
+
+Notably, the predicted probability of being in the *diabetic* category begins to rise rapidly at a BMI of approximately 25 and continues to increase steeply through BMI values above 30. In contrast, the probability of being classified as *prediabetic* peaks around a BMI of 30 and then gradually levels off.
+
+The shaded regions around the lines represent 95% confidence intervals. These widen at the extreme BMI values, indicating less certainty in the estimates due to fewer observations in those ranges.
+
+Overall, this plot demonstrates a strong and progressive association between higher BMI and worsening glycemic status, reinforcing BMI as a significant predictor of abnormal fasting blood sugar levels.
+
+## 6.Checking Proportional Odds Assumption
+
+The `polr()` model assumes **proportional odds** – that the relationship between each pair of outcome groups is the same. To check this assumption, we use **Brant test** or comparing with a **multinomial model**.
+
+```{r}
+
+library(brant)
+
+brant(model_polr)
+
+```
+
+**Assessment of the Proportional Odds Assumption**
+
+The proportional odds assumption for the ordinal logistic regression model was evaluated using the Brant test. The **overall (omnibus) test was not statistically significant** (χ² = 11, df = 7, p = 0.14), indicating that the proportional odds assumption generally holds for the model. Most individual predictors—**hypertension status, gender, smoking status, place of residence (rural/urban), and BMI**—did not show significant violations (p \> 0.05).
+
+However, the variable **age** did show a statistically significant result (χ² = 6.26, p = 0.01), suggesting a potential violation of the proportional odds assumption for this variable. Despite this, since the overall test remains non-significant, the ordinal logistic regression model is considered acceptable. This limitation will be acknowledged in the interpretation of the results
+
+A visual summary of the odds ratios and 95% confidence intervals is provided in the figure below to aid interpretation. Significant predictors are clearly marked, highlighting their relative contribution to the risk of prediabetes or diabetes.
+
+```{r}
+# Create OR results data frame
+or_results <- data.frame(
+  Variable = c("Age", "Hypertension (Yes)", "Gender (Male)",
+               "Quitted Smoking", "Still Smoking", "Urban Residence", "BMI"),
+  OR = c(1.033, 1.639, 1.279, 0.928, 0.967, 0.827, 1.076),
+  CI_lower = c(1.028, 1.356, 1.070, 0.711, 0.770, 0.726, 1.063),
+  CI_upper = c(1.038, 1.981, 1.526, 1.208, 1.212, 0.942, 1.090)
+)
+
+```
+
+```{r}
+library(ggplot2)
+
+# Plotting
+ggplot(or_results, aes(x = OR, y = reorder(Variable, OR))) +
+  geom_point(size = 3, color = "blue") +
+  geom_errorbarh(aes(xmin = CI_lower, xmax = CI_upper), height = 0.2) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "red") +
+  labs(
+    title = "Figure 3: Odds Ratios for Higher FBS Categories",
+    x = "Odds Ratio (OR) [log scale]",
+    y = ""
+  ) +
+  scale_x_log10() +  # Optional: better visualization for OR
+  theme_minimal(base_size = 14)
+
+```
+
+**This Figure 3** displays the odds ratios (OR) with 95% confidence intervals (CIs) for the ordinal logistic regression model predicting higher fasting blood sugar (FBS) categories (i.e., prediabetes or diabetes compared to normal). The vertical red dashed line at OR = 1 represents the null value (no effect).
+
+Variables with confidence intervals that do not cross 1 are considered statistically significant. These include:
+
+-   **Hypertension**: Individuals with hypertension had significantly higher odds of being in a worse FBS category (OR = 1.639; 95% CI: 1.356–1.981).
+
+-   **Gender**: Males had higher odds compared to females (OR = 1.279; 95% CI: 1.070–1.526).
+
+-   **BMI**: Each unit increase in BMI increased the odds of being in a higher FBS category by 7.6% (OR = 1.076; 95% CI: 1.063–1.090).
+
+-   **Age**: Older individuals had greater odds of progressing to higher FBS categories (OR = 1.033; 95% CI: 1.028–1.038).
+
+-   **Urban residence** was associated with significantly **lower odds** of being in a worse FBS category compared to rural residents (OR = 0.827; 95% CI: 0.726–0.942).
+
+-   On the other hand, **smoking status** (whether quitted or still smoking) was not significantly associated with FBS status, as their confidence intervals crossed the null line.
+
+## 7. Results and Interpretation of Ordinal Logistic Regression
+
+![](images/clipboard-3248233147.png)
+
+An ordinal logistic regression analysis was conducted to examine the association between selected demographic and clinical variables with fasting blood sugar (FBS) categories, classified as *normal*, *prediabetes*, and *diabetes*. The model was fitted using the `polr()` function from the **MASS** package in R, and the proportional odds assumption was applied. A total of 250 observations were excluded due to missing data.
+
+The predictors included in the model were age, hypertension status, gender, smoking status, residential area (urban or rural), and body mass index (BMI). The results are presented as adjusted odds ratios (OR) with 95% confidence intervals (CI).
+
+Age was found to be a significant predictor of glycemic status. For each additional year of age, the odds of being in a higher FBS category increased by 3.3% (OR = 1.033; 95% CI: 1.028–1.038; *p* \< 0.001). Hypertension was also significantly associated with worse glycemic status; individuals with hypertension had 1.64 times higher odds of being classified as prediabetic or diabetic compared to those without hypertension (OR = 1.639; 95% CI: 1.356–1.981; *p* \< 0.001).
+
+Male gender was significantly associated with higher odds of worse glycemic control. Males were 27.9% more likely to be in a higher FBS category compared to females (OR = 1.279; 95% CI: 1.070–1.526; *p* = 0.0066).
+
+In contrast, smoking status was not a statistically significant predictor. Individuals who had quit smoking (OR = 0.928; 95% CI: 0.711–1.208; *p* = 0.5807) and those who were current smokers (OR = 0.967; 95% CI: 0.770–1.212; *p* = 0.7689) did not differ significantly in glycemic status compared to non-smokers.
+
+Residential area also demonstrated a significant association with FBS category. Those living in urban areas had 17.3% lower odds of being in a higher FBS category compared to rural residents (OR = 0.827; 95% CI: 0.726–0.942; *p* = 0.0042).
+
+Body mass index (BMI) was a strong predictor in the model. For each one-unit increase in BMI, the odds of being in a worse glycemic category increased by 7.6% (OR = 1.076; 95% CI: 1.063–1.090; *p* \< 0.001).
+
+The model intercepts reflect the thresholds between categories on the logit scale: the threshold between *normal* and *prediabetes or diabetes* was estimated at 4.166 (OR = 64.46), while the threshold between *prediabetes* and *diabetes* was estimated at 5.501 (OR = 245.02). The model had a residual deviance of 6839.88 and an Akaike Information Criterion (AIC) of 6857.88, indicating adequate model fit.
+
+My Github Reference: [git\@github.com:omaralfaruqi/AdvancedstatisticalanalysisGroup3.git](git@github.com:omaralfaruqi/AdvancedstatisticalanalysisGroup3.git)

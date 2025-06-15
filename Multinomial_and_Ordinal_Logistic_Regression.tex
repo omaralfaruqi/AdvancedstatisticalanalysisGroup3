@@ -1,0 +1,1959 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{5}
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{longtable}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{anyfontsize}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\usepackage{bookmark}
+
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Multinomial and Ordinal Logistic Regression},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Multinomial and Ordinal Logistic Regression}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\renewcommand*\contentsname{Table of contents}
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+
+\section{Multinomial and Ordinal Logistic
+Regression}\label{multinomial-and-ordinal-logistic-regression}
+
+\section{By: Dr Omar, Dr Syahid, Dr
+Hilmi}\label{by-dr-omar-dr-syahid-dr-hilmi}
+
+\subsection{1.Background}\label{background}
+
+This report analyzes factors associated with fasting blood sugar (FBS)
+levels, categorized as Normal, Prediabetic and Diabetes, using
+multinomial and ordinal logistic regression. The aim is to identify
+which variables significantly predict elevated FBS levels.
+
+This study involved 4340 individuals to investigate the factors
+associated with fasting blood sugar (FBS) levels. Given the importance
+of early detection and management of impaired glucose metabolism and
+diabetes, this study aimed to identify predictors that significantly
+increase the risk of elevated FBS. The focus was on understanding how
+demographic factors (such as age, living in rural/urban area and gender)
+and clinical factors (such as hypertension, waist circumference, LDL and
+body mass index) relate to an individual's likelihood of being
+classified as having Normal, Prediabetic or Diabetic fasting blood sugar
+levels.
+
+Data analysis was conducted using RStudio IDE for R software.
+
+\subsection{2.Loading Libraries}\label{loading-libraries}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+-- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
+v dplyr     1.1.4     v readr     2.1.5
+v forcats   1.0.0     v stringr   1.5.1
+v ggplot2   3.5.1     v tibble    3.2.1
+v lubridate 1.9.4     v tidyr     1.3.1
+v purrr     1.0.4     
+-- Conflicts ------------------------------------------ tidyverse_conflicts() --
+x dplyr::filter() masks stats::filter()
+x dplyr::lag()    masks stats::lag()
+i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(janitor)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Attaching package: 'janitor'
+
+The following objects are masked from 'package:stats':
+
+    chisq.test, fisher.test
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(gtsummary)}
+\FunctionTok{library}\NormalTok{(VGAM)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Loading required package: stats4
+Loading required package: splines
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(broom)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(haven)}
+\FunctionTok{library}\NormalTok{(here)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+here() starts at C:/Users/USER/Desktop/Assigment Advanced Categorical/Advanced_Categorical_Analysis
+\end{verbatim}
+
+\subsection{3.Dataset}\label{dataset}
+
+The dataset \texttt{datamssm\_a.csv} contains measurements from 4340
+individuals
+
+\paragraph{\texorpdfstring{\textbf{Reading data, Data Preparation and
+Variable
+Recoding}}{Reading data, Data Preparation and Variable Recoding}}\label{reading-data-data-preparation-and-variable-recoding}
+
+The primary outcome variable was fasting blood sugar (FBS), which was
+categorized into three clinically relevant groups based on established
+guidelines. Individuals with FBS less than 5.6 mmol/L were classified as
+having ``normal'' blood sugar levels. Those with FBS values ranging from
+5.6 to 6.9 mmol/L were categorized as ``prediabetes,'' while individuals
+with FBS of 7.0 mmol/L or higher were classified as having ``diabetes.''
+A new variable, \texttt{cat\_fbs}, was created to represent these
+categories and was recoded as a factor in R using the following level
+order:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Normal}: coded as 2 , \textbf{Prediabetes}: coded as 1 ,
+  \textbf{Diabetes}: coded as \textbf{0.} This ordering ensures that
+  ``normal'' serves as the reference category in the multinomial
+  logistic regression model.
+\end{itemize}
+
+Several predictor variables were also recoded using the
+\texttt{factor()} function in R with explicitly defined levels to
+establish consistent coding and appropriate reference groups:
+
+\begin{itemize}
+\item
+  \textbf{Hypertension (\texttt{hpt})}: Recoded as ``no'' = \textbf{0}
+  and ``yes'' = \textbf{1}.
+\item
+  \textbf{Gender (\texttt{gender})}: Recoded as ``female'' = \textbf{0}
+  and ``male'' = \textbf{1}.
+\item
+  \textbf{Area of residence (\texttt{crural})}: Recoded as ``rural'' =
+  \textbf{0} and ``urban'' = \textbf{1}.
+\item
+  \textbf{Smoking status (\texttt{smoking})}: Recoded into three levels:
+  ``never smoked'' = \textbf{0}, ``quitted smoking'' = \textbf{1}, and
+  ``still smoking'' = \textbf{2}.
+\item
+  In addition to these categorical predictors, \textbf{Body Mass Index
+  (BMI), age, waist circumference, LDL} was calculated as a continuous
+  variable using the standard formula:
+\end{itemize}
+
+The BMI variable was retained in its continuous form to preserve the
+variability of measurements and to enable detailed modeling of its
+association with FBS categories.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat }\OtherTok{\textless{}{-}} \FunctionTok{read\_csv}\NormalTok{(}\StringTok{"datamssm\_a.csv"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{clean\_names}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \CommentTok{\# Outcome variable}
+    \AttributeTok{cat\_fbs =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{      fbs }\SpecialCharTok{\textless{}} \FloatTok{5.6} \SpecialCharTok{\textasciitilde{}} \StringTok{"normal"}\NormalTok{,}
+\NormalTok{      fbs }\SpecialCharTok{\textgreater{}=} \FloatTok{5.6} \SpecialCharTok{\&}\NormalTok{ fbs }\SpecialCharTok{\textless{}} \FloatTok{7.0} \SpecialCharTok{\textasciitilde{}} \StringTok{"prediabetes"}\NormalTok{,}
+\NormalTok{      fbs }\SpecialCharTok{\textgreater{}=} \FloatTok{7.0} \SpecialCharTok{\textasciitilde{}} \StringTok{"diabetes"}
+\NormalTok{    ),}
+    \AttributeTok{cat\_fbs =} \FunctionTok{factor}\NormalTok{(cat\_fbs, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"diabetes"}\NormalTok{, }\StringTok{"prediabetes"}\NormalTok{, }\StringTok{"normal"}\NormalTok{)),}
+
+    \CommentTok{\# Recode predictors}
+    \AttributeTok{hpt =} \FunctionTok{factor}\NormalTok{(hpt, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"no"}\NormalTok{, }\StringTok{"yes"}\NormalTok{)),}
+    \AttributeTok{dmdx =} \FunctionTok{factor}\NormalTok{(dmdx, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"no"}\NormalTok{, }\StringTok{"yes"}\NormalTok{)),}
+    \AttributeTok{gender =} \FunctionTok{factor}\NormalTok{(gender, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"female"}\NormalTok{, }\StringTok{"male"}\NormalTok{)),}
+    \AttributeTok{crural =} \FunctionTok{factor}\NormalTok{(crural, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"rural"}\NormalTok{, }\StringTok{"urban"}\NormalTok{)),}
+    \AttributeTok{smoking =} \FunctionTok{factor}\NormalTok{(smoking, }
+                     \AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"never smoked"}\NormalTok{, }\StringTok{"quitted smoking"}\NormalTok{, }\StringTok{"still smoking"}\NormalTok{)),}
+
+    \CommentTok{\# Create BMI}
+    \AttributeTok{bmi =}\NormalTok{ weight }\SpecialCharTok{/}\NormalTok{ (height}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Rows: 4340 Columns: 21
+-- Column specification --------------------------------------------------------
+Delimiter: ","
+chr  (6): codesub, hpt, smoking, dmdx, gender, crural
+dbl (15): age, height, weight, waist, hip, msbpr, mdbpr, hba1c, fbs, mogtt1h...
+
+i Use `spec()` to retrieve the full column specification for this data.
+i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\paragraph{Seeing data structure}\label{seeing-data-structure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{glimpse}\NormalTok{(dat)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Rows: 4,340
+Columns: 23
+$ codesub  <chr> "R-S615112", "MAA615089", "M-M616372", "MFM615361", "R-A61578~
+$ age      <dbl> 70, 20, 29, 25, 37, 43, 26, 28, 48, 20, 56, 55, 26, 39, 18, 2~
+$ hpt      <fct> yes, no, no, no, no, no, no, no, no, no, yes, no, no, no, no,~
+$ smoking  <fct> never smoked, still smoking, never smoked, still smoking, nev~
+$ dmdx     <fct> no, no, no, no, no, no, no, no, no, no, no, no, no, no, no, n~
+$ height   <dbl> 1.54, 1.74, 1.54, 1.60, 1.44, 1.46, 1.47, 1.61, 1.68, 1.55, 1~
+$ weight   <dbl> 40.0, 54.6, 37.0, 48.4, 44.5, 45.5, 48.0, 40.0, 48.4, 41.0, 5~
+$ waist    <dbl> 76.0, 83.0, 83.0, 83.5, 85.0, 90.0, 91.0, 80.0, 82.0, 79.0, 9~
+$ hip      <dbl> 61, 62, 63, 64, 64, 64, 64, 64, 65, 66, 67, 67, 67, 67, 67, 6~
+$ msbpr    <dbl> 135.0, 105.0, 91.0, 117.0, 102.0, 124.0, 120.0, 85.0, 112.0, ~
+$ mdbpr    <dbl> 80.0, 58.0, 60.0, 68.5, 78.0, 65.5, 77.0, 60.0, 74.0, 52.0, 1~
+$ hba1c    <dbl> 5.2, 5.3, 4.8, 4.8, 5.1, 5.1, 4.8, 4.9, 5.6, 4.2, 5.1, 5.3, 4~
+$ fbs      <dbl> 3.99, 4.26, 4.94, 4.60, 4.60, 4.42, 3.82, 4.40, 4.80, 3.68, 6~
+$ mogtt1h  <dbl> 7.06, 8.63, 6.26, 4.31, 9.49, 6.29, NA, 6.43, 9.23, 6.70, 8.7~
+$ mogtt2h  <dbl> 3.22, 6.49, 5.15, 3.85, 7.71, 5.65, 5.88, 4.89, 4.29, 2.59, 7~
+$ totchol  <dbl> 5.43, 5.13, 5.55, 4.01, 5.21, 6.19, 4.33, 5.84, 6.14, 6.02, 6~
+$ ftrigliz <dbl> 1.06, 1.17, 0.72, 1.12, 0.78, 1.11, 0.73, 0.79, 1.63, 0.81, 1~
+$ hdl      <dbl> 1.65, 1.59, 2.24, 1.21, 1.43, 2.18, 0.98, 1.81, 1.63, 1.47, 1~
+$ ldl      <dbl> 2.69, 2.79, 2.55, 1.83, 2.40, 2.93, 1.82, 3.43, 3.71, 2.77, 3~
+$ gender   <fct> female, male, female, male, female, female, female, female, m~
+$ crural   <fct> rural, rural, rural, rural, rural, rural, rural, rural, rural~
+$ cat_fbs  <fct> normal, normal, normal, normal, normal, normal, normal, norma~
+$ bmi      <dbl> 16.86625, 18.03409, 15.60128, 18.90625, 21.46026, 21.34547, 2~
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(dat)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+   codesub               age         hpt                  smoking    
+ Length:4340        Min.   :18.00   no :3836   never smoked   :3307  
+ Class :character   1st Qu.:38.00   yes: 504   quitted smoking: 335  
+ Mode  :character   Median :48.00              still smoking  : 698  
+                    Mean   :47.84                                    
+                    3rd Qu.:58.00                                    
+                    Max.   :89.00                                    
+                                                                     
+  dmdx          height          weight           waist             hip        
+ no :3870   Min.   :1.270   Min.   : 30.00   Min.   : 50.80   Min.   : 61.00  
+ yes: 470   1st Qu.:1.510   1st Qu.: 53.80   1st Qu.: 77.00   1st Qu.: 91.00  
+            Median :1.560   Median : 62.00   Median : 86.00   Median : 97.00  
+            Mean   :1.568   Mean   : 63.75   Mean   : 86.32   Mean   : 97.88  
+            3rd Qu.:1.630   3rd Qu.: 71.97   3rd Qu.: 95.00   3rd Qu.:104.00  
+            Max.   :1.960   Max.   :187.80   Max.   :154.50   Max.   :160.00  
+            NA's   :1       NA's   :2        NA's   :2        NA's   :2       
+     msbpr           mdbpr            hba1c             fbs        
+ Min.   : 68.5   Min.   : 41.50   Min.   : 0.200   Min.   : 2.500  
+ 1st Qu.:117.0   1st Qu.: 70.00   1st Qu.: 5.100   1st Qu.: 4.480  
+ Median :130.0   Median : 77.50   Median : 5.400   Median : 5.180  
+ Mean   :133.5   Mean   : 78.47   Mean   : 5.805   Mean   : 5.734  
+ 3rd Qu.:146.5   3rd Qu.: 86.00   3rd Qu.: 5.800   3rd Qu.: 6.020  
+ Max.   :237.0   Max.   :128.50   Max.   :15.000   Max.   :28.010  
+                                  NA's   :70       NA's   :248     
+    mogtt1h          mogtt2h          totchol          ftrigliz     
+ Min.   : 0.160   Min.   : 0.160   Min.   : 0.180   Min.   : 0.110  
+ 1st Qu.: 6.540   1st Qu.: 5.150   1st Qu.: 4.970   1st Qu.: 0.930  
+ Median : 8.590   Median : 6.600   Median : 5.700   Median : 1.260  
+ Mean   : 9.106   Mean   : 7.343   Mean   : 5.792   Mean   : 1.534  
+ 3rd Qu.:10.840   3rd Qu.: 8.410   3rd Qu.: 6.530   3rd Qu.: 1.770  
+ Max.   :41.500   Max.   :37.370   Max.   :23.140   Max.   :12.660  
+ NA's   :604      NA's   :608      NA's   :54       NA's   :53      
+      hdl             ldl            gender       crural            cat_fbs    
+ Min.   :0.080   Min.   : 0.140   female:2817   rural:2122   diabetes   : 563  
+ 1st Qu.:1.110   1st Qu.: 2.790   male  :1523   urban:2218   prediabetes: 889  
+ Median :1.320   Median : 3.460                              normal     :2640  
+ Mean   :1.345   Mean   : 3.549                              NA's       : 248  
+ 3rd Qu.:1.540   3rd Qu.: 4.245                                                
+ Max.   :4.430   Max.   :10.560                                                
+ NA's   :52      NA's   :53                                                    
+      bmi        
+ Min.   : 9.241  
+ 1st Qu.:22.233  
+ Median :25.391  
+ Mean   :25.915  
+ 3rd Qu.:28.835  
+ Max.   :57.040  
+ NA's   :3       
+\end{verbatim}
+
+\paragraph{Checking outcome
+distribution}\label{checking-outcome-distribution}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{cat\_fbs)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+   diabetes prediabetes      normal        NA's 
+        563         889        2640         248 
+\end{verbatim}
+
+\subsection{4.Descriptive Table}\label{descriptive-table}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(cat\_fbs, age, hpt, smoking, waist, hba1c, fbs, ldl,}
+\NormalTok{         gender, crural, bmi) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tbl\_summary}\NormalTok{(}
+    \AttributeTok{by =}\NormalTok{ cat\_fbs,}
+    \AttributeTok{missing =} \StringTok{"ifany"}\NormalTok{,}
+    \AttributeTok{statistic =} \FunctionTok{list}\NormalTok{(}
+      \FunctionTok{all\_continuous}\NormalTok{() }\SpecialCharTok{\textasciitilde{}} \StringTok{"\{mean\} (\{sd\})"}\NormalTok{,}
+      \FunctionTok{all\_categorical}\NormalTok{() }\SpecialCharTok{\textasciitilde{}} \StringTok{"\{n\} (\{p\}\%)"}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_overall}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{modify\_caption}\NormalTok{(}\StringTok{"**Table 1: Characteristics of Participants by Fasting Blood Sugar Category**"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+248 missing rows in the "cat_fbs" column have been removed.
+\end{verbatim}
+
+\begin{table}
+\fontsize{12.0pt}{14.4pt}\selectfont
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccc}
+\toprule
+\textbf{Characteristic} & \textbf{Overall}  N = 4,092\textsuperscript{\textit{1}} & \textbf{diabetes}  N = 563\textsuperscript{\textit{1}} & \textbf{prediabetes}  N = 889\textsuperscript{\textit{1}} & \textbf{normal}  N = 2,640\textsuperscript{\textit{1}} \\ 
+\midrule\addlinespace[2.5pt]
+age & 48 (14) & 53 (12) & 53 (13) & 45 (15) \\ 
+hpt & 482 (12\%) & 119 (21\%) & 160 (18\%) & 203 (7.7\%) \\ 
+smoking &  &  &  &  \\ 
+    never smoked & 3,136 (77\%) & 432 (77\%) & 669 (75\%) & 2,035 (77\%) \\ 
+    quitted smoking & 322 (7.9\%) & 54 (9.6\%) & 80 (9.0\%) & 188 (7.1\%) \\ 
+    still smoking & 634 (15\%) & 77 (14\%) & 140 (16\%) & 417 (16\%) \\ 
+waist & 86 (13) & 91 (12) & 89 (12) & 84 (13) \\ 
+    Unknown & 2 & 1 & 0 & 1 \\ 
+hba1c & 5.83 (1.46) & 8.05 (2.46) & 5.76 (0.96) & 5.38 (0.67) \\ 
+    Unknown & 22 & 2 & 4 & 16 \\ 
+fbs & 5.73 (2.55) & 10.64 (3.70) & 6.12 (0.38) & 4.56 (0.74) \\ 
+ldl & 3.54 (1.12) & 3.82 (1.24) & 3.66 (1.06) & 3.44 (1.09) \\ 
+    Unknown & 4 & 2 & 0 & 2 \\ 
+gender &  &  &  &  \\ 
+    female & 2,664 (65\%) & 353 (63\%) & 554 (62\%) & 1,757 (67\%) \\ 
+    male & 1,428 (35\%) & 210 (37\%) & 335 (38\%) & 883 (33\%) \\ 
+crural &  &  &  &  \\ 
+    rural & 1,948 (48\%) & 287 (51\%) & 451 (51\%) & 1,210 (46\%) \\ 
+    urban & 2,144 (52\%) & 276 (49\%) & 438 (49\%) & 1,430 (54\%) \\ 
+bmi & 26.0 (5.3) & 27.6 (5.4) & 27.0 (5.2) & 25.2 (5.1) \\ 
+    Unknown & 2 & 0 & 0 & 2 \\ 
+\bottomrule
+\end{tabular*}
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}Mean (SD); n (\%)\\
+\end{minipage}
+\end{table}
+
+\textbf{Table 1} presents the summary statistics of the study
+participants across the three fasting blood sugar (FBS) categories:
+normal, prediabetes and diabetes. Continuous variables are presented as
+mean (SD), and categorical variables as frequency (\%).
+
+\subsection{5.Analysis Plan}\label{analysis-plan}
+
+This study aims to identify the factors associated with fasting blood
+sugar (FBS) status, categorized into three groups: normal, prediabetes
+and diabetes. A multinomial logistic regression model will be used to
+estimate the relative risk ratios (RRR) for the predictors. The
+reference group for the outcome is ``normal''.
+
+The following predictor variables were considered based on prior
+evidence and clinical relevance:
+
+\begin{itemize}
+\item
+  Age (continuous)
+\item
+  LDL (continous)
+\item
+  Waist circumference (continuous)
+\item
+  Hypertension diagnosis (hpt: yes/no)
+\item
+  Gender (female/male)
+\item
+  Smoking status (never, quitted, still smoking)
+\item
+  Residential location (crural: rural/urban)
+\item
+  Body Mass Index (BMI: continuous)
+\end{itemize}
+
+\subsection{6.Model Fitting}\label{model-fitting}
+
+We'll use the \texttt{VGAM::vglm()} function and set \texttt{cat\_fbs}
+as the \textbf{outcome} (reference = \emph{diabetes})
+
+\paragraph{6.1 Fitting Multinomial Logistic Regression
+Model}\label{fitting-multinomial-logistic-regression-model}
+
+\subparagraph{Fitmlog1; predictors are - age + ldl + waist circumference
++ hpt + gender + smoking + crural +
+bmi}\label{fitmlog1-predictors-are---age-ldl-waist-circumference-hpt-gender-smoking-crural-bmi}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Load required package}
+\FunctionTok{library}\NormalTok{(VGAM)}
+
+\CommentTok{\# Fit the model}
+\NormalTok{fitmlog1 }\OtherTok{\textless{}{-}} \FunctionTok{vglm}\NormalTok{(cat\_fbs }\SpecialCharTok{\textasciitilde{}}\NormalTok{ age }\SpecialCharTok{+}\NormalTok{ ldl }\SpecialCharTok{+}\NormalTok{ waist }\SpecialCharTok{+}\NormalTok{ hpt }\SpecialCharTok{+}\NormalTok{ gender }\SpecialCharTok{+}\NormalTok{ smoking }\SpecialCharTok{+}\NormalTok{ crural }\SpecialCharTok{+}\NormalTok{ bmi,}
+                 \AttributeTok{family =} \FunctionTok{multinomial}\NormalTok{(),}
+                 \AttributeTok{data =}\NormalTok{ dat)}
+
+\CommentTok{\# View the result}
+\FunctionTok{summary}\NormalTok{(fitmlog1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+vglm(formula = cat_fbs ~ age + ldl + waist + hpt + gender + smoking + 
+    crural + bmi, family = multinomial(), data = dat)
+
+Coefficients: 
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept):1            -6.758217   0.422052 -16.013  < 2e-16 ***
+(Intercept):2            -4.824306   0.338526 -14.251  < 2e-16 ***
+age:1                     0.031458   0.003897   8.073 6.84e-16 ***
+age:2                     0.032171   0.003166  10.161  < 2e-16 ***
+ldl:1                     0.195804   0.043459   4.506 6.62e-06 ***
+ldl:2                     0.069602   0.037044   1.879  0.06026 .  
+waist:1                   0.017973   0.006489   2.770  0.00561 ** 
+waist:2                   0.004336   0.005474   0.792  0.42823    
+hptyes:1                  0.671392   0.136322   4.925 8.43e-07 ***
+hptyes:2                  0.506838   0.121687   4.165 3.11e-05 ***
+gendermale:1              0.211064   0.133787   1.578  0.11465    
+gendermale:2              0.185642   0.113514   1.635  0.10196    
+smokingquitted smoking:1 -0.126981   0.193026  -0.658  0.51064    
+smokingquitted smoking:2 -0.077653   0.164785  -0.471  0.63747    
+smokingstill smoking:1   -0.109439   0.171318  -0.639  0.52295    
+smokingstill smoking:2    0.077152   0.139500   0.553  0.58022    
+cruralurban:1            -0.163954   0.097414  -1.683  0.09236 .  
+cruralurban:2            -0.179817   0.080822  -2.225  0.02609 *  
+bmi:1                     0.049344   0.015750   3.133  0.00173 ** 
+bmi:2                     0.057083   0.013394   4.262 2.03e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Names of linear predictors: log(mu[,1]/mu[,3]), log(mu[,2]/mu[,3])
+
+Residual deviance: 6781.879 on 8148 degrees of freedom
+
+Log-likelihood: -3390.94 on 8148 degrees of freedom
+
+Number of Fisher scoring iterations: 5 
+
+Warning: Hauck-Donner effect detected in the following estimate(s):
+'(Intercept):1', '(Intercept):2'
+
+
+Reference group is level  3  of the response
+\end{verbatim}
+
+A multinomial logistic regression model was fitted to examine the
+association between demographic and clinical variables and fasting blood
+sugar status, categorized as \textbf{diabetes}, \textbf{prediabetes},
+and \textbf{normal}. The \textbf{reference group} was set as ``normal.''
+The model estimated two sets of log-odds equations:
+
+- Log-odds of being \textbf{diabetic} versus \textbf{normal and}
+Log-odds of being \textbf{prediabetic} versus \textbf{normal}
+
+\begin{itemize}
+\item
+  \textbf{Age} was significantly associated with increased risk for both
+  diabetes and prediabetes. For each additional year of age, the
+  relative risk increased by 3.1\% for diabetes (β = 0.031, \emph{p}
+  \textless{} 0.001) and 3.2\% for prediabetes (β = 0.032, \emph{p}
+  \textless{} 0.001).
+\item
+  \textbf{LDL cholesterol} was significantly associated with higher odds
+  of diabetes (β = 0.196, \emph{p} \textless{} 0.001), but its effect on
+  prediabetes was only marginal (β = 0.070, \emph{p} = 0.060).
+\item
+  \textbf{Waist circumference} showed a small but statistically
+  significant association with diabetes (β = 0.018, \emph{p} = 0.005),
+  but not with prediabetes (β = 0.004, \emph{p} = 0.428).
+\item
+  \textbf{Hypertension} was a strong predictor for both diabetes (β =
+  0.671, \emph{p} \textless{} 0.001) and prediabetes (β = 0.507,
+  \emph{p} \textless{} 0.001), indicating individuals with hypertension
+  had significantly increased odds of abnormal fasting blood sugar.
+\item
+  \textbf{BMI} was significantly associated with increased risk for both
+  diabetes (β = 0.049, \emph{p} = 0.002) and prediabetes (β = 0.057,
+  \emph{p} \textless{} 0.001).
+\item
+  \textbf{Gender, smoking status, and place of residence} showed no
+  significant association with fasting blood sugar categories in this
+  model (all \emph{p} \textgreater{} 0.05), except for urban residency,
+  which was significantly associated with lower odds of prediabetes (β =
+  --0.180, \emph{p} = 0.026).
+\end{itemize}
+
+\paragraph{Another model was done but without place of residence to
+compare model with
+it}\label{another-model-was-done-but-without-place-of-residence-to-compare-model-with-it}
+
+\subparagraph{Fitmlog2; predictors are - age + ldl + waist circumference
++ hpt + gender + smoking + bmi (without
+crural)}\label{fitmlog2-predictors-are---age-ldl-waist-circumference-hpt-gender-smoking-bmi-without-crural}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Load required package}
+\FunctionTok{library}\NormalTok{(VGAM)}
+
+\CommentTok{\# Fit the model}
+\NormalTok{fitmlog2 }\OtherTok{\textless{}{-}} \FunctionTok{vglm}\NormalTok{(cat\_fbs }\SpecialCharTok{\textasciitilde{}}\NormalTok{ age }\SpecialCharTok{+}\NormalTok{ ldl }\SpecialCharTok{+}\NormalTok{ waist }\SpecialCharTok{+}\NormalTok{ hpt }\SpecialCharTok{+}\NormalTok{ gender }\SpecialCharTok{+}\NormalTok{ smoking }\SpecialCharTok{+}\NormalTok{ bmi,}
+                 \AttributeTok{family =} \FunctionTok{multinomial}\NormalTok{(),}
+                 \AttributeTok{data =}\NormalTok{ dat)}
+
+\CommentTok{\# View the result}
+\FunctionTok{summary}\NormalTok{(fitmlog2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+vglm(formula = cat_fbs ~ age + ldl + waist + hpt + gender + smoking + 
+    bmi, family = multinomial(), data = dat)
+
+Coefficients: 
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept):1            -6.881501   0.416474 -16.523  < 2e-16 ***
+(Intercept):2            -4.955371   0.334108 -14.832  < 2e-16 ***
+age:1                     0.031442   0.003897   8.068 7.13e-16 ***
+age:2                     0.032189   0.003165  10.169  < 2e-16 ***
+ldl:1                     0.199874   0.043336   4.612 3.98e-06 ***
+ldl:2                     0.074332   0.036920   2.013  0.04408 *  
+waist:1                   0.019040   0.006483   2.937  0.00331 ** 
+waist:2                   0.005325   0.005479   0.972  0.33108    
+hptyes:1                  0.670160   0.136233   4.919 8.69e-07 ***
+hptyes:2                  0.505072   0.121588   4.154 3.27e-05 ***
+gendermale:1              0.203784   0.133655   1.525  0.12733    
+gendermale:2              0.179950   0.113412   1.587  0.11258    
+smokingquitted smoking:1 -0.137300   0.192881  -0.712  0.47657    
+smokingquitted smoking:2 -0.088015   0.164586  -0.535  0.59281    
+smokingstill smoking:1   -0.100909   0.171100  -0.590  0.55535    
+smokingstill smoking:2    0.086636   0.139238   0.622  0.53380    
+bmi:1                     0.046817   0.015715   2.979  0.00289 ** 
+bmi:2                     0.054635   0.013378   4.084 4.43e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Names of linear predictors: log(mu[,1]/mu[,3]), log(mu[,2]/mu[,3])
+
+Residual deviance: 6788.131 on 8150 degrees of freedom
+
+Log-likelihood: -3394.066 on 8150 degrees of freedom
+
+Number of Fisher scoring iterations: 5 
+
+Warning: Hauck-Donner effect detected in the following estimate(s):
+'(Intercept):1', '(Intercept):2'
+
+
+Reference group is level  3  of the response
+\end{verbatim}
+
+\subsection{7.Model Fit Assessment and Comparing
+Model}\label{model-fit-assessment-and-comparing-model}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Deviance, Log{-}likelihood, AIC}
+\FunctionTok{summary}\NormalTok{(fitmlog1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+vglm(formula = cat_fbs ~ age + ldl + waist + hpt + gender + smoking + 
+    crural + bmi, family = multinomial(), data = dat)
+
+Coefficients: 
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept):1            -6.758217   0.422052 -16.013  < 2e-16 ***
+(Intercept):2            -4.824306   0.338526 -14.251  < 2e-16 ***
+age:1                     0.031458   0.003897   8.073 6.84e-16 ***
+age:2                     0.032171   0.003166  10.161  < 2e-16 ***
+ldl:1                     0.195804   0.043459   4.506 6.62e-06 ***
+ldl:2                     0.069602   0.037044   1.879  0.06026 .  
+waist:1                   0.017973   0.006489   2.770  0.00561 ** 
+waist:2                   0.004336   0.005474   0.792  0.42823    
+hptyes:1                  0.671392   0.136322   4.925 8.43e-07 ***
+hptyes:2                  0.506838   0.121687   4.165 3.11e-05 ***
+gendermale:1              0.211064   0.133787   1.578  0.11465    
+gendermale:2              0.185642   0.113514   1.635  0.10196    
+smokingquitted smoking:1 -0.126981   0.193026  -0.658  0.51064    
+smokingquitted smoking:2 -0.077653   0.164785  -0.471  0.63747    
+smokingstill smoking:1   -0.109439   0.171318  -0.639  0.52295    
+smokingstill smoking:2    0.077152   0.139500   0.553  0.58022    
+cruralurban:1            -0.163954   0.097414  -1.683  0.09236 .  
+cruralurban:2            -0.179817   0.080822  -2.225  0.02609 *  
+bmi:1                     0.049344   0.015750   3.133  0.00173 ** 
+bmi:2                     0.057083   0.013394   4.262 2.03e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Names of linear predictors: log(mu[,1]/mu[,3]), log(mu[,2]/mu[,3])
+
+Residual deviance: 6781.879 on 8148 degrees of freedom
+
+Log-likelihood: -3390.94 on 8148 degrees of freedom
+
+Number of Fisher scoring iterations: 5 
+
+Warning: Hauck-Donner effect detected in the following estimate(s):
+'(Intercept):1', '(Intercept):2'
+
+
+Reference group is level  3  of the response
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{logLik}\NormalTok{(fitmlog1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] -3390.94
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{AIC}\NormalTok{(fitmlog1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 6821.879
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{AIC}\NormalTok{(fitmlog1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 6821.879
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{AIC}\NormalTok{(fitmlog2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 6824.131
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{lrtest}\NormalTok{(fitmlog1, fitmlog2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Likelihood ratio test
+
+Model 1: cat_fbs ~ age + ldl + waist + hpt + gender + smoking + crural + 
+    bmi
+Model 2: cat_fbs ~ age + ldl + waist + hpt + gender + smoking + bmi
+   #Df  LogLik Df  Chisq Pr(>Chisq)  
+1 8148 -3390.9                       
+2 8150 -3394.1  2 6.2523    0.04389 *
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+A likelihood ratio test (LRT) was conducted to assess whether the
+inclusion of place of residence (crural: urban/rural) significantly
+improves the fit of the multinomial logistic regression model predicting
+fasting blood sugar status. Two models were compared:
+
+\textbf{Model 1} included all predictors: age, LDL, waist circumference,
+hypertension, gender, smoking, BMI, and place of residence.
+\textbf{Model 2} was identical except it excluded place of residence.
+
+The comparison showed that Model 1 had a better log-likelihood (--3390.9
+vs --3394.1), and the difference in fit was statistically significant
+(χ² = 6.25, df = 2, p = 0.044). Thus, there is evidence at the 5\%
+significance level that place of residence contributes meaningfully to
+the model in predicting fasting blood sugar categories. Therefore, the
+full model including the place of residence variable is preferred.
+
+\subsection{8. Inferences, Computing RRR, p-value and 95\% CI for each
+covariate}\label{inferences-computing-rrr-p-value-and-95-ci-for-each-covariate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Get Coefficients and Confidence Intervals}
+\NormalTok{coef\_multi }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(fitmlog1)}
+\NormalTok{ci\_multi }\OtherTok{\textless{}{-}} \FunctionTok{confint}\NormalTok{(fitmlog1)}
+
+\CommentTok{\# Combine for table}
+\NormalTok{b\_ci\_multi }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(coef\_multi, ci\_multi)}
+\NormalTok{rrr\_multi }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(b\_ci\_multi)}
+
+\CommentTok{\# Optional: Format nicely}
+\NormalTok{final\_multi }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(b\_ci\_multi, rrr\_multi)}
+\FunctionTok{colnames}\NormalTok{(final\_multi) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"β"}\NormalTok{, }\StringTok{"Lower 95\% β"}\NormalTok{, }\StringTok{"Upper 95\% β"}\NormalTok{,}
+                           \StringTok{"RRR"}\NormalTok{, }\StringTok{"Lower 95\% RRR"}\NormalTok{, }\StringTok{"Upper 95\% RRR"}\NormalTok{)}
+
+\FunctionTok{round}\NormalTok{(final\_multi, }\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                              β Lower 95% β Upper 95% β   RRR Lower 95% RRR
+(Intercept):1            -6.758      -7.585      -5.931 0.001         0.001
+(Intercept):2            -4.824      -5.488      -4.161 0.008         0.004
+age:1                     0.031       0.024       0.039 1.032         1.024
+age:2                     0.032       0.026       0.038 1.033         1.026
+ldl:1                     0.196       0.111       0.281 1.216         1.117
+ldl:2                     0.070      -0.003       0.142 1.072         0.997
+waist:1                   0.018       0.005       0.031 1.018         1.005
+waist:2                   0.004      -0.006       0.015 1.004         0.994
+hptyes:1                  0.671       0.404       0.939 1.957         1.498
+hptyes:2                  0.507       0.268       0.745 1.660         1.308
+gendermale:1              0.211      -0.051       0.473 1.235         0.950
+gendermale:2              0.186      -0.037       0.408 1.204         0.964
+smokingquitted smoking:1 -0.127      -0.505       0.251 0.881         0.603
+smokingquitted smoking:2 -0.078      -0.401       0.245 0.925         0.670
+smokingstill smoking:1   -0.109      -0.445       0.226 0.896         0.641
+smokingstill smoking:2    0.077      -0.196       0.351 1.080         0.822
+cruralurban:1            -0.164      -0.355       0.027 0.849         0.701
+cruralurban:2            -0.180      -0.338      -0.021 0.835         0.713
+bmi:1                     0.049       0.018       0.080 1.051         1.019
+bmi:2                     0.057       0.031       0.083 1.059         1.031
+                         Upper 95% RRR
+(Intercept):1                    0.003
+(Intercept):2                    0.016
+age:1                            1.040
+age:2                            1.039
+ldl:1                            1.324
+ldl:2                            1.153
+waist:1                          1.031
+waist:2                          1.015
+hptyes:1                         2.556
+hptyes:2                         2.107
+gendermale:1                     1.605
+gendermale:2                     1.504
+smokingquitted smoking:1         1.286
+smokingquitted smoking:2         1.278
+smokingstill smoking:1           1.254
+smokingstill smoking:2           1.420
+cruralurban:1                    1.027
+cruralurban:2                    0.979
+bmi:1                            1.084
+bmi:2                            1.087
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Load required libraries}
+\FunctionTok{library}\NormalTok{(knitr)}
+\FunctionTok{library}\NormalTok{(kableExtra)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Attaching package: 'kableExtra'
+\end{verbatim}
+
+\begin{verbatim}
+The following object is masked from 'package:dplyr':
+
+    group_rows
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(VGAM)}
+
+\CommentTok{\#  Get coefficient summary from  vglm model}
+\NormalTok{summary\_fit }\OtherTok{\textless{}{-}} \FunctionTok{summary}\NormalTok{(fitmlog1)}
+\NormalTok{coef\_table }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(summary\_fit)}
+
+\CommentTok{\#  Extract estimates and standard errors}
+\NormalTok{estimates }\OtherTok{\textless{}{-}}\NormalTok{ coef\_table[, }\StringTok{"Estimate"}\NormalTok{]}
+\NormalTok{se }\OtherTok{\textless{}{-}}\NormalTok{ coef\_table[, }\StringTok{"Std. Error"}\NormalTok{]}
+
+\CommentTok{\#  Compute confidence intervals and p{-}values}
+\NormalTok{lower\_95\_beta }\OtherTok{\textless{}{-}}\NormalTok{ estimates }\SpecialCharTok{{-}} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ se}
+\NormalTok{upper\_95\_beta }\OtherTok{\textless{}{-}}\NormalTok{ estimates }\SpecialCharTok{+} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ se}
+\NormalTok{rrr }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(estimates)}
+\NormalTok{lower\_95\_rrr }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(lower\_95\_beta)}
+\NormalTok{upper\_95\_rrr }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(upper\_95\_beta)}
+\NormalTok{z }\OtherTok{\textless{}{-}}\NormalTok{ estimates }\SpecialCharTok{/}\NormalTok{ se}
+\NormalTok{p\_value }\OtherTok{\textless{}{-}} \DecValTok{2} \SpecialCharTok{*}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{pnorm}\NormalTok{(}\FunctionTok{abs}\NormalTok{(z)))}
+
+\CommentTok{\# Create final data frame}
+\NormalTok{final\_table }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+\NormalTok{  β }\OtherTok{=} \FunctionTok{round}\NormalTok{(estimates, }\DecValTok{3}\NormalTok{),}
+\NormalTok{  Lower\_95\_β }\OtherTok{=} \FunctionTok{round}\NormalTok{(lower\_95\_beta, }\DecValTok{3}\NormalTok{),}
+\NormalTok{  Upper\_95\_β }\OtherTok{=} \FunctionTok{round}\NormalTok{(upper\_95\_beta, }\DecValTok{3}\NormalTok{),}
+  \AttributeTok{RRR =} \FunctionTok{round}\NormalTok{(rrr, }\DecValTok{3}\NormalTok{),}
+  \AttributeTok{Lower\_95\_RRR =} \FunctionTok{round}\NormalTok{(lower\_95\_rrr, }\DecValTok{3}\NormalTok{),}
+  \AttributeTok{Upper\_95\_RRR =} \FunctionTok{round}\NormalTok{(upper\_95\_rrr, }\DecValTok{3}\NormalTok{),}
+  \AttributeTok{p\_value =} \FunctionTok{ifelse}\NormalTok{(p\_value }\SpecialCharTok{\textless{}} \FloatTok{0.001}\NormalTok{, }\StringTok{"\textless{}0.001"}\NormalTok{, }\FunctionTok{round}\NormalTok{(p\_value, }\DecValTok{4}\NormalTok{))}
+\NormalTok{)}
+
+\CommentTok{\#  Display table with kableExtra}
+\FunctionTok{kable}\NormalTok{(final\_table,}
+      \AttributeTok{caption =} \StringTok{"Table 2: Multinomial Logistic Regression – Coefficients, 95\% Confidence Intervals, Relative Risk Ratios, and p{-}values"}\NormalTok{,}
+      \AttributeTok{align =} \StringTok{"c"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{bootstrap\_options =} \FunctionTok{c}\NormalTok{(}\StringTok{"striped"}\NormalTok{, }\StringTok{"hover"}\NormalTok{, }\StringTok{"condensed"}\NormalTok{, }\StringTok{"responsive"}\NormalTok{),}
+                \AttributeTok{full\_width =} \ConstantTok{FALSE}\NormalTok{,}
+                \AttributeTok{position =} \StringTok{"left"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[l]{lccccccc}
+\caption{Table 2: Multinomial Logistic Regression – Coefficients, 95% Confidence Intervals, Relative Risk Ratios, and p-values}\\
+\toprule
+ & β & Lower\_95\_β & Upper\_95\_β & RRR & Lower\_95\_RRR & Upper\_95\_RRR & p\_value\\
+\midrule
+(Intercept):1 & -6.758 & -7.585 & -5.931 & 0.001 & 0.001 & 0.003 & <0.001\\
+(Intercept):2 & -4.824 & -5.488 & -4.161 & 0.008 & 0.004 & 0.016 & <0.001\\
+age:1 & 0.031 & 0.024 & 0.039 & 1.032 & 1.024 & 1.040 & <0.001\\
+age:2 & 0.032 & 0.026 & 0.038 & 1.033 & 1.026 & 1.039 & <0.001\\
+ldl:1 & 0.196 & 0.111 & 0.281 & 1.216 & 1.117 & 1.324 & <0.001\\
+\addlinespace
+ldl:2 & 0.070 & -0.003 & 0.142 & 1.072 & 0.997 & 1.153 & 0.0603\\
+waist:1 & 0.018 & 0.005 & 0.031 & 1.018 & 1.005 & 1.031 & 0.0056\\
+waist:2 & 0.004 & -0.006 & 0.015 & 1.004 & 0.994 & 1.015 & 0.4282\\
+hptyes:1 & 0.671 & 0.404 & 0.939 & 1.957 & 1.498 & 2.556 & <0.001\\
+hptyes:2 & 0.507 & 0.268 & 0.745 & 1.660 & 1.308 & 2.107 & <0.001\\
+\addlinespace
+gendermale:1 & 0.211 & -0.051 & 0.473 & 1.235 & 0.950 & 1.605 & 0.1147\\
+gendermale:2 & 0.186 & -0.037 & 0.408 & 1.204 & 0.964 & 1.504 & 0.102\\
+smokingquitted smoking:1 & -0.127 & -0.505 & 0.251 & 0.881 & 0.603 & 1.286 & 0.5106\\
+smokingquitted smoking:2 & -0.078 & -0.401 & 0.245 & 0.925 & 0.670 & 1.278 & 0.6375\\
+smokingstill smoking:1 & -0.109 & -0.445 & 0.226 & 0.896 & 0.641 & 1.254 & 0.5229\\
+\addlinespace
+smokingstill smoking:2 & 0.077 & -0.196 & 0.351 & 1.080 & 0.822 & 1.420 & 0.5802\\
+cruralurban:1 & -0.164 & -0.355 & 0.027 & 0.849 & 0.701 & 1.027 & 0.0924\\
+cruralurban:2 & -0.180 & -0.338 & -0.021 & 0.835 & 0.713 & 0.979 & 0.0261\\
+bmi:1 & 0.049 & 0.018 & 0.080 & 1.051 & 1.019 & 1.084 & 0.0017\\
+bmi:2 & 0.057 & 0.031 & 0.083 & 1.059 & 1.031 & 1.087 & <0.001\\
+\bottomrule
+\end{longtable}
+
+Table 2 presents the estimated coefficients (β), 95\% confidence
+intervals, p-value and corresponding Relative Risk Ratios (RRR) for the
+association between selected predictors and fasting blood sugar status.
+The outcome has three categories: diabetes, prediabetes and normal
+(reference category).
+
+\subsection{9.Predicted Log-Odds \&
+Probabilities}\label{predicted-log-odds-probabilities}
+
+\paragraph{9.1 Viewing the first
+observation}\label{viewing-the-first-observation}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat[}\DecValTok{1}\NormalTok{, }\FunctionTok{c}\NormalTok{(}\StringTok{"age"}\NormalTok{, }\StringTok{"ldl"}\NormalTok{, }\StringTok{"waist"}\NormalTok{, }\StringTok{"hpt"}\NormalTok{, }\StringTok{"gender"}\NormalTok{, }\StringTok{"smoking"}\NormalTok{, }\StringTok{"crural"}\NormalTok{, }\StringTok{"bmi"}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 1 x 8
+    age   ldl waist hpt   gender smoking      crural   bmi
+  <dbl> <dbl> <dbl> <fct> <fct>  <fct>        <fct>  <dbl>
+1    70  2.69    76 yes   female never smoked rural   16.9
+\end{verbatim}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.3056}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.4583}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Value
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+age
+
+waist circumference
+
+LDL & 70
+
+76
+
+2.69 \\
+hpt & yes (→ 1) \\
+gender & female (→ 0) \\
+smoking & never smoked (→ reference = 0) \\
+crural & rural (→ reference = 0) \\
+bmi & 16.86625 \\
+\end{longtable}
+
+\paragraph{9.2 Plug into Logit Formulas, to get log odd, then
+exponentiate log odd to get
+odd}\label{plug-into-logit-formulas-to-get-log-odd-then-exponentiate-log-odd-to-get-odd}
+
+\pandocbounded{\includegraphics[keepaspectratio]{images/clipboard-2267435938.png}}
+
+\textbf{Log odds; diabetis vs normal}
+
+logit1= -6.758217 + (0.031458 × age) + (0.195804 × ldl) + (0.017973 ×
+waist circumference) + (0.671392 x hpt) + (gender x 0) + (smoking x 0) +
+(crural x 0)+ (0.049344 × bmi) = log odd1
+
+logit1= -6.758217 + (0.031458 × 70) + (0.195804 × 2.69) + (0.017973 ×
+76) + (0.671392 x 1) + 0 + 0 + 0 + (0.049344 × 16.87) = -1.15994
+
+\textbf{log odd1 = -1.15994, odd = exponentiate log odd 1 = 0.3138}
+
+\textbf{Log odds; prediabetic vs normal}
+
+logit2= -4.824306 + (0.032171 × age) + (0.069602 × ldl) + (0.004336 ×
+waist circumference) + (0.506838 x hpt) + (gender x 0) + (smoking x 0) +
+(crural x 0)+ (0.057083 × bmi) = Log odd2
+
+logit2= -4.824306 + (0.032171 × 70) + (0.069602 × 2.69) + (0.004336 ×
+76) + (0.506838 x 1) + (gender x 0) + (smoking x 0) + (crural x 0)+
+(0.057083 × bmi) = -0.58554
+
+\textbf{log odd2 = -0.58554, odd = exponentiate log odd2 = 0.5569}
+
+\textbf{9.3 To calculate probablity, since this is multinomial, then
+total odd = 0.3138 + 0.5569 +1 = 1.8707}
+
+Now we calculate the probablity
+
+P(Diabetis) = 0.3138/1.8707 = \textbf{0.1667}
+
+P(Prediabetis) = 0.5569/1.8707 = \textbf{0.2976}
+
+P(Normal) = 1/1.8707 = \textbf{0.5347}
+
+\textbf{Cross Check}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Predict log{-}odds for the first observation}
+\NormalTok{log\_odds }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fitmlog1, }\AttributeTok{newdata =}\NormalTok{ dat[}\DecValTok{1}\NormalTok{, ], }\AttributeTok{type =} \StringTok{"link"}\NormalTok{)}
+
+\CommentTok{\# Predict probabilities for the first observation}
+\NormalTok{probabilities }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fitmlog1, }\AttributeTok{newdata =}\NormalTok{ dat[}\DecValTok{1}\NormalTok{, ], }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+
+\CommentTok{\# Display log{-}odds}
+\NormalTok{log\_odds}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  log(mu[,1]/mu[,3]) log(mu[,2]/mu[,3])
+1          -1.159803         -0.5859181
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Display probabilities}
+\NormalTok{probabilities}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+   diabetes prediabetes    normal
+1 0.1676599   0.2976215 0.5347186
+\end{verbatim}
+
+Same with manual calculation.
+
+\subsection{10.Result and Intepretation}\label{result-and-intepretation}
+
+\subsubsection{\texorpdfstring{\textbf{Table 3: Multinomial Logistic
+Regression Predicting Fasting Blood Sugar Categories (Reference:
+Normal)}}{Table 3: Multinomial Logistic Regression Predicting Fasting Blood Sugar Categories (Reference: Normal)}}\label{table-3-multinomial-logistic-regression-predicting-fasting-blood-sugar-categories-reference-normal}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.3158}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.0877}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.0877}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1842}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1228}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Predictor}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{β}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{95\% CI for β}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{RRR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{95\% CI for RRR}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{p-value}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Intercept (Prediabetes vs Normal) & -6.758 & -7.585, -5.931 & 0.001 &
+0.001, 0.003 & \textless0.001 \\
+Intercept (Diabetes vs Normal) & -4.824 & -5.488, -4.161 & 0.008 &
+0.004, 0.016 & \textless0.001 \\
+Age (Prediabetes) & 0.031 & 0.024, 0.039 & 1.032 & 1.024, 1.040 &
+\textless0.001 \\
+Age (Diabetes) & 0.032 & 0.026, 0.038 & 1.033 & 1.026, 1.039 &
+\textless0.001 \\
+LDL (Prediabetes) & 0.196 & 0.111, 0.281 & 1.216 & 1.117, 1.324 &
+\textless0.001 \\
+LDL (Diabetes) & 0.07 & -0.003, 0.142 & 1.072 & 0.997, 1.153 & 0.06 \\
+Waist (Prediabetes) & 0.018 & 0.005, 0.031 & 1.018 & 1.005, 1.031 &
+0.0056 \\
+Waist (Diabetes) & 0.004 & -0.006, 0.015 & 1.004 & 0.994, 1.015 &
+0.4282 \\
+Hypertension (Prediabetes) & 0.671 & 0.404, 0.939 & 1.957 & 1.498, 2.556
+& \textless0.001 \\
+Hypertension (Diabetes) & 0.507 & 0.268, 0.745 & 1.66 & 1.308, 2.107 &
+\textless0.001 \\
+Male Gender (Prediabetes) & 0.211 & -0.051, 0.473 & 1.235 & 0.950, 1.605
+& 0.1147 \\
+Male Gender (Diabetes) & 0.186 & -0.037, 0.408 & 1.204 & 0.964, 1.504 &
+0.102 \\
+Ex-Smoker (Prediabetes) & -0.127 & -0.505, 0.251 & 0.881 & 0.603, 1.286
+& 0.5106 \\
+Ex-Smoker (Diabetes) & -0.078 & -0.401, 0.245 & 0.925 & 0.670, 1.278 &
+0.6375 \\
+Current Smoker (Prediabetes) & -0.109 & -0.445, 0.226 & 0.896 & 0.641,
+1.254 & 0.5229 \\
+Current Smoker (Diabetes) & 0.077 & -0.196, 0.351 & 1.08 & 0.822, 1.420
+& 0.5802 \\
+Urban Residence (Prediabetes) & -0.164 & -0.355, 0.027 & 0.849 & 0.701,
+1.027 & 0.0924 \\
+Urban Residence (Diabetes) & -0.18 & -0.338, -0.021 & 0.835 & 0.713,
+0.979 & 0.0261 \\
+BMI (Prediabetes) & 0.049 & 0.018, 0.080 & 1.051 & 1.019, 1.084 &
+0.0017 \\
+BMI (Diabetes) & 0.057 & 0.031, 0.083 & 1.059 & 1.031, 1.087 &
+\textless0.001 \\
+\end{longtable}
+
+*Multinomial logistic regression was used. The outcome variable
+(cat\_fbs) has three levels: normal (reference), prediabetes, and
+diabetes\\
+*A p-value \textless{} 0.05 was considered statistically significant.\\
+*Each row contains two comparisons: (1) prediabetes vs.~normal and (2)
+diabetes vs.~normal.
+
+A multinomial logistic regression analysis was conducted to examine the
+association between several predictors and fasting blood sugar status,
+categorized as \textbf{diabetes}, \textbf{prediabetes}, and
+\textbf{normal} (reference category). The results are interpreted using
+the estimated regression coefficients (β), relative risk ratios (RRR),
+95\% confidence intervals (CI), and p-values.
+
+The results showed that \textbf{age} was a significant predictor of both
+diabetes and prediabetes. For each additional year of age, the relative
+risk of being diabetic (vs normal) increased by approximately 3.2\% (RRR
+= 1.032, 95\% CI: 1.024--1.040, \emph{p} \textless{} 0.001), and the
+risk of being prediabetic increased by a similar amount (RRR = 1.033,
+95\% CI: 1.026--1.039, \emph{p} \textless{} 0.001). This indicates that
+older individuals are more likely to have abnormal fasting blood sugar.
+
+Higher levels of \textbf{LDL cholesterol} were significantly associated
+with diabetes. Specifically, each unit increase in LDL was associated
+with a 21.6\% higher risk of diabetes (RRR = 1.216, 95\% CI:
+1.117--1.324, \emph{p} \textless{} 0.001). However, LDL was not
+significantly associated with prediabetes (RRR = 1.072, 95\% CI:
+0.997--1.153, \emph{p} = 0.060), though the association was borderline.
+
+\textbf{Waist circumference} was found to be a significant predictor of
+diabetes, with each unit increase associated with a 1.8\% higher risk
+(RRR = 1.018, 95\% CI: 1.005--1.031, \emph{p} = 0.0056). This
+relationship was not significant for prediabetes (RRR = 1.004, 95\% CI:
+0.994--1.015, \emph{p} = 0.4282).
+
+\textbf{Hypertension} was a strong and consistent predictor of abnormal
+blood sugar. Individuals with hypertension had nearly twice the risk of
+being diabetic (RRR = 1.957, 95\% CI: 1.498--2.556, \emph{p} \textless{}
+0.001) and a 66\% higher risk of being prediabetic (RRR = 1.660, 95\%
+CI: 1.308--2.107, \emph{p} \textless{} 0.001), compared to normotensive
+individuals.
+
+\textbf{Body Mass Index (BMI)} was also significantly associated with
+both outcomes. Each unit increase in BMI was associated with a 5.1\%
+increase in the risk of diabetes (RRR = 1.051, 95\% CI: 1.019--1.084,
+\emph{p} = 0.0017) and a 5.9\% increase in the risk of prediabetes (RRR
+= 1.059, 95\% CI: 1.031--1.087, \emph{p} \textless{} 0.001),
+highlighting the influence of body composition on glycemic outcomes.
+
+Regarding \textbf{place of residence}, living in an urban area was
+significantly associated with a lower risk of prediabetes compared to
+living in rural areas (RRR = 0.835, 95\% CI: 0.713--0.979, \emph{p} =
+0.0261). However, urban residence was not significantly associated with
+diabetes (RRR = 0.849, 95\% CI: 0.701--1.027, \emph{p} = 0.0924).
+
+In contrast, \textbf{gender} was not a significant predictor of either
+diabetes or prediabetes. The RRRs for males compared to females were
+1.235 (95\% CI: 0.950--1.605, \emph{p} = 0.1147) for diabetes and 1.204
+(95\% CI: 0.964--1.504, \emph{p} = 0.102) for prediabetes, with
+confidence intervals including the null value of 1.
+
+Similarly, \textbf{smoking status} did not show any statistically
+significant associations with fasting blood sugar categories. Whether
+the individual had quit smoking or was still smoking, none of the
+comparisons showed significant differences from non-smokers, with all
+p-values \textgreater{} 0.5.
+
+In summary, this analysis identifies several important predictors of
+abnormal fasting blood sugar. Age, hypertension, BMI, and LDL levels are
+strong risk factors for diabetes, while age, hypertension, BMI, and
+urban residence are associated with prediabetes. Waist circumference is
+significantly related to diabetes but not prediabetes. Gender and
+smoking status were not significantly associated with fasting blood
+sugar status in this sample. These findings highlight the importance of
+cardiometabolic and lifestyle factors in the risk stratification for
+glycemic disorders.
+
+\subsection{\texorpdfstring{\textbf{NOW PROCEED TO ORDINAL LOGISTIC
+REGRESSION}}{NOW PROCEED TO ORDINAL LOGISTIC REGRESSION}}\label{now-proceed-to-ordinal-logistic-regression}
+
+Not we will set outcome variable \texttt{cat\_fbs} is ordinal (Normal
+\textless{} Prediabetes \textless{} Diabetes). We will use BMI, age,
+gender, hpt, smoking, and crural as predictors. The reference category
+is Normal (lowest FBS category).
+
+\subsection{1.Loading required
+packages}\label{loading-required-packages}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(MASS)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Attaching package: 'MASS'
+\end{verbatim}
+
+\begin{verbatim}
+The following object is masked from 'package:gtsummary':
+
+    select
+\end{verbatim}
+
+\begin{verbatim}
+The following object is masked from 'package:dplyr':
+
+    select
+\end{verbatim}
+
+\subsection{\texorpdfstring{2.Set cat\_fbs as ordered factor We make the
+categories are treated as \textbf{ordinal} in the correct
+order:}{2.Set cat\_fbs as ordered factor We make the categories are treated as ordinal in the correct order:}}\label{set-cat_fbs-as-ordered-factor-we-make-the-categories-are-treated-as-ordinal-in-the-correct-order}
+
+The outcome variable of interest was fasting blood sugar (fbs), which
+was transformed into an ordinal variable named \texttt{cat\_fbs} with
+three ordered categories:
+
+\begin{itemize}
+\item
+  \textbf{Normal} (fbs \textless{} 5.6 mmol/L)
+\item
+  \textbf{Prediabetes} (fbs 5.6--6.9 mmol/L)
+\item
+  \textbf{Diabetes} (fbs ≥ 7.0 mmol/L)
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat}\SpecialCharTok{$}\NormalTok{cat\_fbs }\OtherTok{\textless{}{-}} \FunctionTok{ordered}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{cat\_fbs, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"normal"}\NormalTok{, }\StringTok{"prediabetes"}\NormalTok{, }\StringTok{"diabetes"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{3.Fit the ordinal logistic regression
+model}\label{fit-the-ordinal-logistic-regression-model}
+
+We use the \texttt{polr()} function from the \textbf{MASS} package to
+fit a proportional odds model
+
+An \textbf{ordinal logistic regression model} (also known as the
+\textbf{proportional odds model}) was fitted using the \texttt{polr()}
+function from the \texttt{MASS} package in R. The dependent variable was
+\texttt{cat\_fbs}, which represents ordered categories of fasting blood
+sugar status (\emph{normal}, \emph{prediabetes}, \emph{diabetes}). The
+model included the following predictors: \textbf{Age} (continuous),
+\textbf{Hypertension status} (\texttt{hpt}), \textbf{Gender, Smoking
+status, Residential area} (\texttt{crural}: rural/urban), \textbf{Body
+mass index} (\texttt{bmi})
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model\_ord }\OtherTok{\textless{}{-}} \FunctionTok{polr}\NormalTok{(cat\_fbs }\SpecialCharTok{\textasciitilde{}}\NormalTok{ age }\SpecialCharTok{+}\NormalTok{ hpt }\SpecialCharTok{+}\NormalTok{ gender }\SpecialCharTok{+}\NormalTok{ smoking }\SpecialCharTok{+}\NormalTok{ crural }\SpecialCharTok{+}\NormalTok{ bmi, }\AttributeTok{data =}\NormalTok{ dat, }\AttributeTok{Hess =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(dat[, }\FunctionTok{c}\NormalTok{(}\StringTok{"hpt"}\NormalTok{, }\StringTok{"gender"}\NormalTok{, }\StringTok{"smoking"}\NormalTok{, }\StringTok{"crural"}\NormalTok{)])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  hpt          gender                smoking       crural    
+ no :3836   female:2817   never smoked   :3307   rural:2122  
+ yes: 504   male  :1523   quitted smoking: 335   urban:2218  
+                          still smoking  : 698               
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat }\OtherTok{\textless{}{-}}\NormalTok{ dat }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{hpt =} \FunctionTok{factor}\NormalTok{(hpt),}
+    \AttributeTok{gender =} \FunctionTok{factor}\NormalTok{(gender),}
+    \AttributeTok{smoking =} \FunctionTok{factor}\NormalTok{(smoking),}
+    \AttributeTok{crural =} \FunctionTok{factor}\NormalTok{(crural)}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(dat[, }\FunctionTok{c}\NormalTok{(}\StringTok{"hpt"}\NormalTok{, }\StringTok{"gender"}\NormalTok{, }\StringTok{"smoking"}\NormalTok{, }\StringTok{"crural"}\NormalTok{)])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  hpt          gender                smoking       crural    
+ no :3836   female:2817   never smoked   :3307   rural:2122  
+ yes: 504   male  :1523   quitted smoking: 335   urban:2218  
+                          still smoking  : 698               
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model\_ord }\OtherTok{\textless{}{-}} \FunctionTok{polr}\NormalTok{(cat\_fbs }\SpecialCharTok{\textasciitilde{}}\NormalTok{ age }\SpecialCharTok{+}\NormalTok{ hpt }\SpecialCharTok{+}\NormalTok{ gender }\SpecialCharTok{+}\NormalTok{ smoking }\SpecialCharTok{+}\NormalTok{ crural }\SpecialCharTok{+}\NormalTok{ bmi, }\AttributeTok{data =}\NormalTok{ dat, }\AttributeTok{Hess =} \ConstantTok{TRUE}\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(model\_ord)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Call:
+polr(formula = cat_fbs ~ age + hpt + gender + smoking + crural + 
+    bmi, data = dat, Hess = TRUE)
+
+Coefficients:
+                          Value Std. Error t value
+age                     0.03247   0.002520 12.8865
+hptyes                  0.49433   0.096734  5.1103
+gendermale              0.24599   0.090528  2.7173
+smokingquitted smoking -0.07452   0.134919 -0.5523
+smokingstill smoking   -0.03397   0.115606 -0.2939
+cruralurban            -0.18973   0.066318 -2.8609
+bmi                     0.07332   0.006452 11.3645
+
+Intercepts:
+                     Value   Std. Error t value
+normal|prediabetes    4.1661  0.2317    17.9816
+prediabetes|diabetes  5.5013  0.2384    23.0778
+
+Residual Deviance: 6839.883 
+AIC: 6857.883 
+(250 observations deleted due to missingness)
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(model\_ord)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Call:
+polr(formula = cat_fbs ~ age + hpt + gender + smoking + crural + 
+    bmi, data = dat, Hess = TRUE)
+
+Coefficients:
+                          Value Std. Error t value
+age                     0.03247   0.002520 12.8865
+hptyes                  0.49433   0.096734  5.1103
+gendermale              0.24599   0.090528  2.7173
+smokingquitted smoking -0.07452   0.134919 -0.5523
+smokingstill smoking   -0.03397   0.115606 -0.2939
+cruralurban            -0.18973   0.066318 -2.8609
+bmi                     0.07332   0.006452 11.3645
+
+Intercepts:
+                     Value   Std. Error t value
+normal|prediabetes    4.1661  0.2317    17.9816
+prediabetes|diabetes  5.5013  0.2384    23.0778
+
+Residual Deviance: 6839.883 
+AIC: 6857.883 
+(250 observations deleted due to missingness)
+\end{verbatim}
+
+\subsection{4.Model Summary}\label{model-summary}
+
+\paragraph{4.1 Extracting Coefficient}\label{extracting-coefficient}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2418}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1978}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1538}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2308}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Predictor
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Coef (log odds)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Std. Error
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+z / t-value
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Significance
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{age} & \textbf{0.03247} & 0.00252 & 12.89 & *** significant \\
+\texttt{hpt} (yes) & \textbf{0.49433} & 0.09673 & 5.11 & ***
+significant \\
+\texttt{gender} (male) & \textbf{0.24599} & 0.09053 & 2.72 & **
+significant \\
+\texttt{smoking} (quitted) & -0.07452 & 0.13492 & -0.55 & not
+significant \\
+\texttt{smoking} (still) & -0.03397 & 0.11561 & -0.29 & not
+significant \\
+\texttt{crural} (urban) & \textbf{-0.18973} & 0.06632 & -2.86 & **
+significant \\
+\texttt{bmi} & \textbf{0.07332} & 0.00645 & 11.36 & *** significant \\
+\end{longtable}
+
+\paragraph{4.2 Computing p-value and odds
+ratio}\label{computing-p-value-and-odds-ratio}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#  Coefficient table}
+\NormalTok{ctable }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(}\FunctionTok{summary}\NormalTok{(model\_ord))}
+
+\CommentTok{\#  Compute p{-}values}
+\NormalTok{p }\OtherTok{\textless{}{-}} \FunctionTok{pnorm}\NormalTok{(}\FunctionTok{abs}\NormalTok{(ctable[, }\StringTok{"t value"}\NormalTok{]), }\AttributeTok{lower.tail =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{*} \DecValTok{2}
+
+\CommentTok{\#  Combine with Odds Ratios}
+\NormalTok{(ctable\_final }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(}
+\NormalTok{  ctable,}
+  \StringTok{"p value"} \OtherTok{=} \FunctionTok{round}\NormalTok{(p, }\DecValTok{4}\NormalTok{),}
+  \StringTok{"OR"} \OtherTok{=} \FunctionTok{round}\NormalTok{(}\FunctionTok{exp}\NormalTok{(ctable[, }\StringTok{"Value"}\NormalTok{]), }\DecValTok{3}\NormalTok{)}
+\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                             Value  Std. Error    t value p value      OR
+age                     0.03247078 0.002519747 12.8865220  0.0000   1.033
+hptyes                  0.49433362 0.096733563  5.1102596  0.0000   1.639
+gendermale              0.24599425 0.090527820  2.7173332  0.0066   1.279
+smokingquitted smoking -0.07451737 0.134918880 -0.5523124  0.5807   0.928
+smokingstill smoking   -0.03397191 0.115605867 -0.2938597  0.7689   0.967
+cruralurban            -0.18972949 0.066317962 -2.8609065  0.0042   0.827
+bmi                     0.07332127 0.006451797 11.3644724  0.0000   1.076
+normal|prediabetes      4.16609188 0.231686572 17.9815854  0.0000  64.463
+prediabetes|diabetes    5.50134856 0.238382284 23.0778415  0.0000 245.022
+\end{verbatim}
+
+\paragraph{\texorpdfstring{4.3 Getting \textbf{95\% Confidence
+Intervals} for the coefficients and
+ORs}{4.3 Getting 95\% Confidence Intervals for the coefficients and ORs}}\label{getting-95-confidence-intervals-for-the-coefficients-and-ors}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#  Compute CI for log{-}odds (coefficients)}
+\NormalTok{ci\_logit }\OtherTok{\textless{}{-}} \FunctionTok{confint}\NormalTok{(model\_ord)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Waiting for profiling to be done...
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Step 5: Convert to Odds Ratio scale}
+\NormalTok{ci\_OR }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(ci\_logit)}
+
+\CommentTok{\# Combine and view nicely}
+\NormalTok{OR\_table }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(}
+  \AttributeTok{OR =} \FunctionTok{round}\NormalTok{(}\FunctionTok{exp}\NormalTok{(}\FunctionTok{coef}\NormalTok{(model\_ord)), }\DecValTok{3}\NormalTok{),}
+  \AttributeTok{CI\_lower =} \FunctionTok{round}\NormalTok{(ci\_OR[, }\DecValTok{1}\NormalTok{], }\DecValTok{3}\NormalTok{),}
+  \AttributeTok{CI\_upper =} \FunctionTok{round}\NormalTok{(ci\_OR[, }\DecValTok{2}\NormalTok{], }\DecValTok{3}\NormalTok{)}
+\NormalTok{)}
+
+\FunctionTok{print}\NormalTok{(OR\_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                          OR CI_lower CI_upper
+age                    1.033    1.028    1.038
+hptyes                 1.639    1.356    1.981
+gendermale             1.279    1.070    1.526
+smokingquitted smoking 0.928    0.711    1.208
+smokingstill smoking   0.967    0.770    1.212
+cruralurban            0.827    0.726    0.942
+bmi                    1.076    1.063    1.090
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ci\_logit }\OtherTok{\textless{}{-}} \FunctionTok{confint.default}\NormalTok{(model\_ord)}
+\NormalTok{ci\_OR }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(ci\_logit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule\noalign{}
+Variable & OR & 95\% CI & p-value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Age (per year) & 1.033 & 1.028 -- 1.038 & \textless0.001 \\
+Hypertension (yes) & 1.639 & 1.356 -- 1.981 & \textless0.001 \\
+Gender (male) & 1.279 & 1.070 -- 1.526 & 0.0066 \\
+Smoking: Quitted & 0.928 & 0.711 -- 1.208 & 0.581 \\
+Smoking: Still & 0.967 & 0.770 -- 1.212 & 0.769 \\
+Residential (urban) & 0.827 & 0.726 -- 0.942 & 0.0042 \\
+BMI (per unit) & 1.076 & 1.063 -- 1.090 & \textless0.001 \\
+\end{longtable}
+
+\subsection{\texorpdfstring{5.Visual presentation: \textbf{ggpredict()},
+\textbf{forest plot}, predicted
+probabilities}{5.Visual presentation: ggpredict(), forest plot, predicted probabilities}}\label{visual-presentation-ggpredict-forest-plot-predicted-probabilities}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(MASS)        }\CommentTok{\# For polr()}
+\FunctionTok{library}\NormalTok{(ggeffects)   }\CommentTok{\# For ggpredict()}
+\FunctionTok{library}\NormalTok{(ggplot2)     }\CommentTok{\# For plotting}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(MASS)  }\CommentTok{\# Needed for polr()}
+
+\NormalTok{model\_polr }\OtherTok{\textless{}{-}} \FunctionTok{polr}\NormalTok{(cat\_fbs }\SpecialCharTok{\textasciitilde{}}\NormalTok{ age }\SpecialCharTok{+}\NormalTok{ hpt }\SpecialCharTok{+}\NormalTok{ gender }\SpecialCharTok{+}\NormalTok{ smoking }\SpecialCharTok{+}\NormalTok{ crural }\SpecialCharTok{+}\NormalTok{ bmi, }
+                   \AttributeTok{data =}\NormalTok{ dat, }\AttributeTok{Hess =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(MASS)        }\CommentTok{\# For polr()}
+\FunctionTok{library}\NormalTok{(ggeffects)   }\CommentTok{\# For ggpredict()}
+\FunctionTok{library}\NormalTok{(ggplot2)     }\CommentTok{\# For plotting}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(MASS)  }\CommentTok{\# Needed for polr()}
+
+\NormalTok{model\_polr }\OtherTok{\textless{}{-}} \FunctionTok{polr}\NormalTok{(cat\_fbs }\SpecialCharTok{\textasciitilde{}}\NormalTok{ age }\SpecialCharTok{+}\NormalTok{ hpt }\SpecialCharTok{+}\NormalTok{ gender }\SpecialCharTok{+}\NormalTok{ smoking }\SpecialCharTok{+}\NormalTok{ crural }\SpecialCharTok{+}\NormalTok{ bmi, }
+                   \AttributeTok{data =}\NormalTok{ dat, }\AttributeTok{Hess =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred\_age }\OtherTok{\textless{}{-}} \FunctionTok{ggpredict}\NormalTok{(model\_polr, }\AttributeTok{terms =} \StringTok{"age [all]"}\NormalTok{)}
+
+\FunctionTok{plot}\NormalTok{(pred\_age) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Figure 1:Predicted Probabilities by Age"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Age"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Predicted Probability"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Multinomial_and_Ordinal_Logistic_Regression_files/figure-pdf/unnamed-chunk-32-1.pdf}}
+
+As shown in this figure 1, the predicted probability of being in the
+\emph{normal} FBS category \textbf{decreases steadily with age},
+particularly after the age of 40. Conversely, the probabilities of being
+classified as \emph{prediabetic} or \emph{diabetic} \textbf{increase
+with advancing age}. The probability of being in the \emph{diabetic}
+category rises sharply after the age of 50, reflecting a strong
+age-related risk gradient.
+
+The shaded areas represent 95\% confidence intervals around the
+predicted probabilities. These intervals widen at the extremes of the
+age range, likely due to fewer observations in those age groups.
+
+This visualization supports the model finding that \textbf{age is a
+strong predictor} of worsening glycemic status, with a clear and
+progressive trend from normal to diabetes as age increases
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred\_bmi }\OtherTok{\textless{}{-}} \FunctionTok{ggpredict}\NormalTok{(model\_polr, }\AttributeTok{terms =} \StringTok{"bmi [all]"}\NormalTok{)}
+
+\FunctionTok{plot}\NormalTok{(pred\_bmi) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Figure 2:Predicted Probabilities by BMI"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"BMI"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Predicted Probability"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Multinomial_and_Ordinal_Logistic_Regression_files/figure-pdf/unnamed-chunk-33-1.pdf}}
+
+As illustrated in the figure 2 above, the probability of being
+classified as \emph{normal} decreases markedly as BMI increases. This
+decline is most prominent between BMI values of 20 and 35.
+Simultaneously, the probabilities of being categorized as
+\emph{prediabetic} or \emph{diabetic} increase with rising BMI.
+
+Notably, the predicted probability of being in the \emph{diabetic}
+category begins to rise rapidly at a BMI of approximately 25 and
+continues to increase steeply through BMI values above 30. In contrast,
+the probability of being classified as \emph{prediabetic} peaks around a
+BMI of 30 and then gradually levels off.
+
+The shaded regions around the lines represent 95\% confidence intervals.
+These widen at the extreme BMI values, indicating less certainty in the
+estimates due to fewer observations in those ranges.
+
+Overall, this plot demonstrates a strong and progressive association
+between higher BMI and worsening glycemic status, reinforcing BMI as a
+significant predictor of abnormal fasting blood sugar levels.
+
+\subsection{6.Checking Proportional Odds
+Assumption}\label{checking-proportional-odds-assumption}
+
+The \texttt{polr()} model assumes \textbf{proportional odds} -- that the
+relationship between each pair of outcome groups is the same. To check
+this assumption, we use \textbf{Brant test} or comparing with a
+\textbf{multinomial model}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(brant)}
+
+\FunctionTok{brant}\NormalTok{(model\_polr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+------------------------------------------------------------ 
+Test for            X2  df  probability 
+------------------------------------------------------------ 
+Omnibus             11  7   0.14
+age             6.26    1   0.01
+hptyes              0.96    1   0.33
+gendermale          0.05    1   0.83
+smokingquitted smoking  0.01    1   0.91
+smokingstill smoking        0.64    1   0.42
+cruralurban         0.28    1   0.6
+bmi             1.09    1   0.3
+------------------------------------------------------------ 
+
+H0: Parallel Regression Assumption holds
+\end{verbatim}
+
+\begin{verbatim}
+Warning in brant(model_polr): 8 combinations in table(dv,ivs) do not occur.
+Because of that, the test results might be invalid.
+\end{verbatim}
+
+\textbf{Assessment of the Proportional Odds Assumption}
+
+The proportional odds assumption for the ordinal logistic regression
+model was evaluated using the Brant test. The \textbf{overall (omnibus)
+test was not statistically significant} (χ² = 11, df = 7, p = 0.14),
+indicating that the proportional odds assumption generally holds for the
+model. Most individual predictors---\textbf{hypertension status, gender,
+smoking status, place of residence (rural/urban), and BMI}---did not
+show significant violations (p \textgreater{} 0.05).
+
+However, the variable \textbf{age} did show a statistically significant
+result (χ² = 6.26, p = 0.01), suggesting a potential violation of the
+proportional odds assumption for this variable. Despite this, since the
+overall test remains non-significant, the ordinal logistic regression
+model is considered acceptable. This limitation will be acknowledged in
+the interpretation of the results
+
+A visual summary of the odds ratios and 95\% confidence intervals is
+provided in the figure below to aid interpretation. Significant
+predictors are clearly marked, highlighting their relative contribution
+to the risk of prediabetes or diabetes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create OR results data frame}
+\NormalTok{or\_results }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Variable =} \FunctionTok{c}\NormalTok{(}\StringTok{"Age"}\NormalTok{, }\StringTok{"Hypertension (Yes)"}\NormalTok{, }\StringTok{"Gender (Male)"}\NormalTok{,}
+               \StringTok{"Quitted Smoking"}\NormalTok{, }\StringTok{"Still Smoking"}\NormalTok{, }\StringTok{"Urban Residence"}\NormalTok{, }\StringTok{"BMI"}\NormalTok{),}
+  \AttributeTok{OR =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.033}\NormalTok{, }\FloatTok{1.639}\NormalTok{, }\FloatTok{1.279}\NormalTok{, }\FloatTok{0.928}\NormalTok{, }\FloatTok{0.967}\NormalTok{, }\FloatTok{0.827}\NormalTok{, }\FloatTok{1.076}\NormalTok{),}
+  \AttributeTok{CI\_lower =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.028}\NormalTok{, }\FloatTok{1.356}\NormalTok{, }\FloatTok{1.070}\NormalTok{, }\FloatTok{0.711}\NormalTok{, }\FloatTok{0.770}\NormalTok{, }\FloatTok{0.726}\NormalTok{, }\FloatTok{1.063}\NormalTok{),}
+  \AttributeTok{CI\_upper =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.038}\NormalTok{, }\FloatTok{1.981}\NormalTok{, }\FloatTok{1.526}\NormalTok{, }\FloatTok{1.208}\NormalTok{, }\FloatTok{1.212}\NormalTok{, }\FloatTok{0.942}\NormalTok{, }\FloatTok{1.090}\NormalTok{)}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ggplot2)}
+
+\CommentTok{\# Plotting}
+\FunctionTok{ggplot}\NormalTok{(or\_results, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ OR, }\AttributeTok{y =} \FunctionTok{reorder}\NormalTok{(Variable, OR))) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{, }\AttributeTok{color =} \StringTok{"blue"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_errorbarh}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{xmin =}\NormalTok{ CI\_lower, }\AttributeTok{xmax =}\NormalTok{ CI\_upper), }\AttributeTok{height =} \FloatTok{0.2}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \DecValTok{1}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Figure 3: Odds Ratios for Higher FBS Categories"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Odds Ratio (OR) [log scale]"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{""}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{scale\_x\_log10}\NormalTok{() }\SpecialCharTok{+}  \CommentTok{\# Optional: better visualization for OR}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{14}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Multinomial_and_Ordinal_Logistic_Regression_files/figure-pdf/unnamed-chunk-36-1.pdf}}
+
+\textbf{This Figure 3} displays the odds ratios (OR) with 95\%
+confidence intervals (CIs) for the ordinal logistic regression model
+predicting higher fasting blood sugar (FBS) categories (i.e.,
+prediabetes or diabetes compared to normal). The vertical red dashed
+line at OR = 1 represents the null value (no effect).
+
+Variables with confidence intervals that do not cross 1 are considered
+statistically significant. These include:
+
+\begin{itemize}
+\item
+  \textbf{Hypertension}: Individuals with hypertension had significantly
+  higher odds of being in a worse FBS category (OR = 1.639; 95\% CI:
+  1.356--1.981).
+\item
+  \textbf{Gender}: Males had higher odds compared to females (OR =
+  1.279; 95\% CI: 1.070--1.526).
+\item
+  \textbf{BMI}: Each unit increase in BMI increased the odds of being in
+  a higher FBS category by 7.6\% (OR = 1.076; 95\% CI: 1.063--1.090).
+\item
+  \textbf{Age}: Older individuals had greater odds of progressing to
+  higher FBS categories (OR = 1.033; 95\% CI: 1.028--1.038).
+\item
+  \textbf{Urban residence} was associated with significantly
+  \textbf{lower odds} of being in a worse FBS category compared to rural
+  residents (OR = 0.827; 95\% CI: 0.726--0.942).
+\item
+  On the other hand, \textbf{smoking status} (whether quitted or still
+  smoking) was not significantly associated with FBS status, as their
+  confidence intervals crossed the null line.
+\end{itemize}
+
+\subsection{7. Results and Interpretation of Ordinal Logistic
+Regression}\label{results-and-interpretation-of-ordinal-logistic-regression}
+
+\pandocbounded{\includegraphics[keepaspectratio]{images/clipboard-3248233147.png}}
+
+An ordinal logistic regression analysis was conducted to examine the
+association between selected demographic and clinical variables with
+fasting blood sugar (FBS) categories, classified as \emph{normal},
+\emph{prediabetes}, and \emph{diabetes}. The model was fitted using the
+\texttt{polr()} function from the \textbf{MASS} package in R, and the
+proportional odds assumption was applied. A total of 250 observations
+were excluded due to missing data.
+
+The predictors included in the model were age, hypertension status,
+gender, smoking status, residential area (urban or rural), and body mass
+index (BMI). The results are presented as adjusted odds ratios (OR) with
+95\% confidence intervals (CI).
+
+Age was found to be a significant predictor of glycemic status. For each
+additional year of age, the odds of being in a higher FBS category
+increased by 3.3\% (OR = 1.033; 95\% CI: 1.028--1.038; \emph{p}
+\textless{} 0.001). Hypertension was also significantly associated with
+worse glycemic status; individuals with hypertension had 1.64 times
+higher odds of being classified as prediabetic or diabetic compared to
+those without hypertension (OR = 1.639; 95\% CI: 1.356--1.981; \emph{p}
+\textless{} 0.001).
+
+Male gender was significantly associated with higher odds of worse
+glycemic control. Males were 27.9\% more likely to be in a higher FBS
+category compared to females (OR = 1.279; 95\% CI: 1.070--1.526;
+\emph{p} = 0.0066).
+
+In contrast, smoking status was not a statistically significant
+predictor. Individuals who had quit smoking (OR = 0.928; 95\% CI:
+0.711--1.208; \emph{p} = 0.5807) and those who were current smokers (OR
+= 0.967; 95\% CI: 0.770--1.212; \emph{p} = 0.7689) did not differ
+significantly in glycemic status compared to non-smokers.
+
+Residential area also demonstrated a significant association with FBS
+category. Those living in urban areas had 17.3\% lower odds of being in
+a higher FBS category compared to rural residents (OR = 0.827; 95\% CI:
+0.726--0.942; \emph{p} = 0.0042).
+
+Body mass index (BMI) was a strong predictor in the model. For each
+one-unit increase in BMI, the odds of being in a worse glycemic category
+increased by 7.6\% (OR = 1.076; 95\% CI: 1.063--1.090; \emph{p}
+\textless{} 0.001).
+
+The model intercepts reflect the thresholds between categories on the
+logit scale: the threshold between \emph{normal} and \emph{prediabetes
+or diabetes} was estimated at 4.166 (OR = 64.46), while the threshold
+between \emph{prediabetes} and \emph{diabetes} was estimated at 5.501
+(OR = 245.02). The model had a residual deviance of 6839.88 and an
+Akaike Information Criterion (AIC) of 6857.88, indicating adequate model
+fit.
+
+
+
+
+\end{document}

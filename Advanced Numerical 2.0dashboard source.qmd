@@ -1,0 +1,465 @@
+---
+title: "Advanced Numerical 2.0"
+---
+
+```{r}
+options(repos = c(CRAN = "https://cran.rstudio.com"))
+```
+
+## Prepare Environment
+
+```{r}
+install.packages("broom.mixed")
+install.packages("kableExtra")
+install.packages("lmerTest")
+library(haven)
+library(tidyverse)
+library(broom.mixed)
+library(here)
+library(gtsummary)
+library(DT)
+library(kableExtra)
+library(lme4)
+library(lmerTest)
+```
+
+```{r}
+library(readr)
+Life_Expectancy_Data <- read_csv("C:/Users/H P/OneDrive - The Goose and Duck/Desktop/Data Survival/Life Expectancy Data - Latest.csv")
+glimpse(Life_Expectancy_Data)
+str(Life_Expectancy_Data)
+```
+
+```{r}
+Life_Expectancy_Data <- Life_Expectancy_Data %>%
+  mutate(across(
+    .cols = where(is.character),
+    .fns = as.factor
+  ))
+glimpse(Life_Expectancy_Data)
+
+```
+
+```{r}
+Life_Expectancy_Data <- Life_Expectancy_Data %>%
+  mutate(`Life expectancy` = as.numeric(`Life expectancy`))
+
+Life_Expectancy_Data <- Life_Expectancy_Data %>%
+  mutate(Year_since2000 = as.numeric(as.character(Year)) - 2000)
+
+glimpse(Life_Expectancy_Data)
+```
+
+```{r}
+Life_Expectancy_Data <- Life_Expectancy_Data %>%
+  mutate(`Life expectancy` = as.numeric(`Life expectancy`))
+
+Life_Expectancy_Data <- Life_Expectancy_Data %>%
+  mutate(Year = as.factor(Year))
+
+glimpse(Life_Expectancy_Data)
+```
+
+```{r}
+tbl_summary(Life_Expectancy_Data)
+```
+
+```{r}
+library(gtsummary)
+library(dplyr)
+
+# Create descriptive table
+table_summary <- Life_Expectancy_Data %>%
+  select(Status, Year, Year_since2000, `Life expectancy`) %>%
+  tbl_summary(
+    by = Status,
+    *,
+    digits = all_continuous() ~ 1
+  ) %>%
+  add_overall() %>%
+  modify_header(label ~ "**Variable**") %>%
+  modify_spanning_header(all_stat_cols() ~ "**Summary Statistics by Development Status**") %>%
+  modify_caption("**Table 1. Descriptive Statistics of Life Expectancy Dataset**")
+
+# Print the table
+table_summary
+
+```
+
+Test
+
+```{r}
+library(ggplot2)
+library(dplyr)
+Life_Expectancy_Data %>%
+  group_by(Status) %>%
+  summarise(Avg_LE = mean(`Life expectancy`, na.rm = TRUE)) %>%
+  ggplot(aes(x = Status, y = Avg_LE, fill = Status)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Life Expectancy by Development Status",
+       y = "Average Life Expectancy")
+
+```
+
+```{r}
+ggplot(Life_Expectancy_Data, aes(x = Year, y = `Life expectancy`, color = Status)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Trends in Life Expectancy by Status")
+
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(Life_Expectancy_Data, aes(x = Year_since2000, y = `Life expectancy`, group = Country, color = Status)) +
+  geom_line(alpha = 0.4) +
+  labs(title = "Life Expectancy Over Time by Country and Status",
+       x = "Year", y = "Life Expectancy") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+```{r}
+ggplot(Life_Expectancy_Data, aes(x = Year_since2000, y = `Life expectancy`, group = Country, color = Status)) +
+  geom_line(alpha = 0.2) +
+  stat_summary(aes(group = Status), fun = mean, geom = "line", size = 1.2, linetype = "solid") +
+  labs(title = "Life Expectancy Trends with Group Mean Averages According to Status (Developed and Developing)",
+       x = "Year", y = "Life Expectancy") +
+  theme_minimal()
+
+```
+
+```{r}
+m.lm <- lm(Life_Expectancy_Data$`Life expectancy` ~ 1, data = Life_Expectancy_Data)
+summary(m.lm)
+```
+
+```{r}
+m0 <- 
+  lmer(Life_Expectancy_Data$`Life expectancy` ~ 1 + (1 | Status/Country), 
+       data = Life_Expectancy_Data, REML = FALSE)
+summary(m0)
+```
+
+```{r}
+tidy(m0) %>%
+kbl() %>%
+kable_styling()
+```
+
+```{r}
+mlr <- lm(Life_Expectancy_Data$`Life expectancy` ~ 1, data = Life_Expectancy_Data)
+summary(mlr)
+```
+
+```{r}
+logLik(mlr) ; logLik(m0)
+```
+
+## Random intercept
+
+```{r}
+ri <- lmer(Life_Expectancy_Data$`Life expectancy` ~ Status + Year_since2000 + (1 | Country),
+data = Life_Expectancy_Data,
+REML = FALSE)
+summary(ri)
+```
+
+```{r}
+ri <- lmer(Life_Expectancy_Data$`Life expectancy` ~ Year_since2000 + (1 | Status/Country),
+data = Life_Expectancy_Data,
+REML = FALSE)
+summary(ri)
+```
+
+```{r}
+tidy(ri, conf.int = TRUE) %>%
+kbl %>%
+kable_styling()
+```
+
+```{r}
+pred_score <- fitted(ri)
+head(pred_score, 106)
+```
+
+```{r}
+rand_ef <- ranef(ri)
+head(rand_ef$Country, 106)
+```
+
+```{r}
+ri_fitted <- augment(ri)
+```
+
+```{r}
+ri_fitted %>%
+slice(1590:1605)
+```
+
+```{r}
+ggplot(ri_fitted, aes(x = Year_since2000, y = .fitted, group = Country, color = Status)) +
+  geom_point(alpha = 0.3) +
+  geom_line(alpha = 0.3) +
+  ylab('Fitted Life Expectancy') +
+  xlab('Year (where 0 = Year 2000)') +
+  ggtitle('Fitted Values from Random Intercept Model with Cohort Year') +
+  theme_bw()
+
+
+```
+
+```{r}
+ggplot(ri_fitted, aes(x = Year_since2000, y = .fitted, group = Country, color = Status)) +
+  geom_point(alpha = 0.3) +
+  geom_line(alpha = 0.3) +
+  ylab('Fitted Life Expectancy') +
+  xlab('Year (where 0 = 1990)') +
+  ggtitle('Fitted Values from Random Intercept Model with Cohort Year') +
+  theme_bw()
+
+```
+
+## Random Slope
+
+```{r}
+Life_Expectancy_Data <- Life_Expectancy_Data %>%
+  mutate(Year_since2000 = as.numeric(as.character(Year)) - 2000)
+
+glimpse(Life_Expectancy_Data)
+```
+
+```{r}
+rs <- lmer(`Life expectancy` ~ Status + Year_since2000 + (1 + Year_since2000 | Country),
+           data = Life_Expectancy_Data,
+control = lmerControl(optimizer = 'bobyqa'),
+REML = FALSE)
+summary(rs)
+```
+
+### Interpretation
+
+The model estimates that the average life expectancy in the year 2000 for developed countries was **75.55 years**. Developing countries had a significantly lower baseline, by about **10.86 years**. Over time, life expectancy increases by approximately **0.35 years per year** on average across all countries.
+
+There is substantial variation in baseline life expectancy between countries, with a **between-country variance of 86.0**, indicating that some countries start much higher or lower than others. The yearly improvement in life expectancy also varies between countries, with a **slope variance of 0.076**, showing that not all countries progress at the same rate.
+
+Importantly, there is a **strong negative correlation (-0.71)** between a country's starting point and its growth rate. This means countries that began with higher life expectancy tend to improve more slowly, while those starting lower tend to catch up faster.
+
+This model accounts for both country-level differences and global time trends, providing a flexible and realistic understanding of how life expectancy evolves across countries
+
+```{r}
+tidy(rs) %>% kbl() %>%
+kable_styling()
+```
+
+```{r}
+anova(ri, rs)
+```
+
+```{r}
+rs_res <- augment(rs)
+head(rs_res, 20)
+summary(rs_res)
+```
+
+```{r}
+ggplot(rs_res, aes(x = Year_since2000, y = .fitted, group = Country, color = Status)) +
+  geom_point(alpha = 0.3) +
+  geom_line(alpha = 0.3) +
+  ylab('Fitted Life Expectancy') +
+  xlab('Year (where 0 = Year 2000)') +
+  ggtitle('Fitted Values from Random Intercept Model with Cohort Year') +
+  theme_bw()
+```
+
+```{r}
+ra.eff.rs <- ranef(rs, condVar = TRUE)
+datatable(ra.eff.rs$Country)
+plot(ra.eff.rs)
+```
+
+```{r}
+ra.eff.rs.sc <- ra.eff.rs$Country
+names(ra.eff.rs.sc)
+```
+
+```{r}
+ra.eff.rs.sc <- ra.eff.rs.sc %>%
+rename(rs_slope = Year_since2000, rs_int = "(Intercept)")
+ra.eff.rs.sc %>%
+ggplot(aes( x = rs_int, y = rs_slope)) +
+geom_point() +
+geom_vline(xintercept = 0) +
+geom_hline(yintercept = 0)
+```
+
+```{r}
+datatable(rs_res)
+```
+
+```{r}
+ggplot(data = rs_res, aes(x = Year_since2000, y = .fitted, group = Country, color = Status)) +
+  geom_point(alpha = 0.3) +
+  geom_line(aes(group = Country), alpha = 0.5) +
+  labs(
+    y = "Fitted Life Expectancy",
+    x = "Years since 2000",
+    title = "Fitted Life Expectancy by Country Over Time",
+    subtitle = "From a Random Slope Model"
+  ) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11)
+  )
+
+```
+
+```{r}
+install.packages("merTools")
+library(merTools)
+random_effects_sim <- REsim(rs)
+plotREsim(random_effects_sim)
+```
+
+```{r}
+library(lattice)
+randoms <- ranef(rs, condVar = TRUE)
+dotplot(randoms)
+```
+
+```{r}
+plot(rs)
+```
+
+```{r}
+library(lattice)
+qqmath(rs)
+```
+
+## Test
+
+```{r}
+install.packages("rnaturalearthdata")
+
+library(ggplot2)
+library(dplyr)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# Load required libraries
+library(ggplot2)
+library(dplyr)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# Load world shapefile data
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+# Filter your data for most recent year (2015 = Year_since2000 15)
+map_data <- Life_Expectancy_Data %>%
+  filter(Year_since2000 == 15) %>%
+  select(Country, `Life expectancy`) %>%
+  group_by(Country) %>%
+  summarise(LifeExp = mean(`Life expectancy`, na.rm = TRUE))
+
+# Join with world map using country name
+world_map <- left_join(world, map_data, by = c("name" = "Country"))
+
+# Plot world heat map
+ggplot(data = world_map) +
+  geom_sf(aes(fill = LifeExp), color = "white", size = 0.1) +
+  scale_fill_viridis_c(option = "plasma", na.value = "lightgrey", name = "Life Expectancy (2015)") +
+  theme_minimal() +
+  labs(
+    title = "Global Life Expectancy by Country",
+    subtitle = "Year: 2015",
+    caption = "Source: WHO Dataset"
+  )
+
+```
+
+```{r}
+install.packages(c("ggplot2", "dplyr", "sf", "rnaturalearth", "rnaturalearthdata", "gganimate", "transformr"))
+
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(gganimate)
+
+# Load world map
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+# Prepare data: average life expectancy by country and year
+map_data <- Life_Expectancy_Data %>%
+  group_by(Country, Year_since2000) %>%
+  summarise(LifeExp = mean(`Life expectancy`, na.rm = TRUE)) %>%
+  ungroup()
+
+# Merge with world map
+world_animated <- left_join(world, map_data, by = c("name" = "Country"))
+
+# Create animated heatmap
+p <- ggplot(world_animated) +
+  geom_sf(aes(fill = LifeExp), color = "white", size = 0.1) +
+  scale_fill_viridis_c(option = "plasma", na.value = "darkgrey", name = "Life Exp") +
+  theme_minimal() +
+  labs(
+    title = "Global Life Expectancy by Country",
+    subtitle = "Year: {frame_time + 2000}",
+    caption = "Source: WHO Dataset"
+  ) +
+  transition_time(Year_since2000) +
+  ease_aes('linear')  # Smooth transition
+
+# Animate
+animate(p, nframes = 200, fps = 10, width = 900, height = 500, renderer = gifski_renderer())
+
+# To save the animation
+anim_save("life_expectancy_world_map.gif")
+
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(gganimate)
+
+# Filter only selected ASEAN countries
+asean_data <- Life_Expectancy_Data %>%
+  filter(Country %in% c("Malaysia", "Indonesia", "Singapore", "Thailand")) %>%
+  select(Country, Year_since2000, `Life expectancy`) %>%
+  arrange(Country, Year_since2000)
+
+```
+
+```{r}
+p <- ggplot(asean_data, aes(x = Year_since2000, y = `Life expectancy`, color = Country, group = Country)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 5) +
+  labs(
+    title = "Life Expectancy in ASEAN Countries: Year {frame_time + 2000}",
+    x = "Years Since 2000",
+    y = "Life Expectancy",
+    color = "Country"
+  ) +
+  theme_minimal(base_size = 14) +
+  transition_time(Year_since2000) +
+  ease_aes("linear")
+
+# Render animation
+animate(p, nframes = 100, fps = 10, width = 800, height = 500, renderer = gifski_renderer())
+
+# Save animation
+anim_save("asean_life_expectancy.gif")
+
+```
