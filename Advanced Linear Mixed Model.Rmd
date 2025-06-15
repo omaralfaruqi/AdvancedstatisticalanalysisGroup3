@@ -1,0 +1,458 @@
+---
+title: "LINEAR MIXED MODEL"
+date: "2025-06-15"
+output:
+  html_document:
+   toc: true
+   toc-title: "Contents"
+   toc-location: left
+   toc-depth: 3
+   toc-expand: 1
+   number-sections: true
+   code-fold: true
+   code-summary: "Show the Code"
+   theme:
+    version: 4
+    bootswatch: united
+   embed-resources: true
+editor: visual
+
+---
+
+------------------------------------------------------------------------
+
+![Logo](3.png)
+
+# LINEAR MIXED MODEL
+
+**Dr Omar bin Nazmi**
+
+**Dr Ahmad Syahid bin Ibrahim**
+
+**Dr Mohd Hilmi bin Mat Husain**
+
+# Introduction
+
+These practical will be using dataset that contains information on 900 children from 30 different schools across Scotland. The data was collected as part of a study looking at whether education-related motivation is associated with school grades. This is expected to be different for state vs privately funded schools. All children completed an ‘education motivation’ questionnaire, and their end-of-year grade average has been recorded.
+
+Datasets contains: variable motiv : Child's Education Motivation score range ( range 1-10) funding : Funding( 'state' or 'private') schoolid : Name of School that the childs attends grade : Child's end-of-year grdae average ( 0-100)
+
+Children are nested within schools. This means : Level 1 : students ( motiv) Level 2 : Schoolid
+
+# Load Package
+
+```{r}
+library(haven)
+  library(tidyverse)
+  library(broom.mixed)
+  library(here)
+  library(gtsummary)
+  library(DT)
+  library(kableExtra)
+```
+
+Package for multilevel
+
+```{r}
+  library(lme4)
+  library(lmerTest)
+```
+
+# Read data
+
+```{r}
+ library(readr)
+  schoolmot <- read_csv("schoolmot.csv")
+  glimpse(schoolmot)
+```
+
+Convert character to factorial variable.
+
+```{r}
+schoolgrade<-schoolmot %>% mutate_if(is.character,~ as_factor(.))
+  glimpse(schoolmot)
+```
+
+# EDA
+
+Summarize data
+
+```{r}
+ schoolgrade %>%
+    tbl_summary()
+```
+
+```{r}
+ schoolgrade %>%
+    ggplot(aes(x = motiv, y = grade)) +
+    geom_point() +
+    geom_smooth(method = lm)
+```
+
+```{r}
+ schoolgrade %>%
+    ggplot(aes(x = schoolid, y = grade)) +
+    geom_point() +
+    geom_smooth(method = lm)
+```
+
+```{r}
+ggplot(schoolgrade, aes(grade, motiv)) +
+  geom_point() +
+  facet_wrap(~schoolid, ncol = 4) +
+  labs(x = "grade",
+       y = "motiv") 
+```
+
+```{r}
+ schoolgrade %>%
+    ggplot(aes(x = motiv, y = grade, 
+               col = funding, group = funding)) +
+    geom_point() +
+    geom_smooth(method = lm)
+```
+
+end of year grade increases as the motivational score in both groups, however, the grade score for private funded school slightly higher.
+
+# Comparing groups using multilevel model
+
+We are starting with simplest model( null model) .
+
+score\_{ij} = \beta\*0 + u\*{0j} + e\_{ij}
+
+1.  grade-{ij} : the child's end fo year grade
+2.  b_0 : the overal mean grade across school
+3.  u\_{0j} : the effect pf school , on grade . This is also level 2 residuals
+4.  e\_{if} : student-level residuals, This is level 1 residuals
+
+## Single level analysis
+
+```{r}
+schoolgrade1 <- lm(grade ~ 1, data = schoolgrade)
+summary(schoolgrade1)
+```
+
+## Multi-level analysis
+
+Using the null model ( no explanatory variables). we will set the estimation using maximum likelyhood estimates ( MLE) The random effect due to the school
+
+```{r}
+schoolgrade2 <- lmer(grade ~ 1 + (1 | schoolid), 
+       data = schoolgrade, REML = FALSE)
+summary(schoolgrade2)
+```
+
+The overall mean attainment (across schools) is estimated as 50.35. The mean for school 𝑗 is estimated as 50.35+𝑈̂0𝑗 where 𝑈̂0𝑗 is the school residuals (Level-2 residuals)
+
+The intraclass correlation ( ICC) is 44.74/(44.76 + 165.63) = 0.212, which is 21%, explaining 21% of difference of variablitty of variance.
+
+```{r}
+tidy(schoolgrade2) %>%
+  kbl() %>%
+  kable_styling()
+```
+
+Comparing the models ( schoolgrade1 vs schoolgrade2) . Does the multilevel model differ from the single linear regression model? Hence, we compare with Likelyhood Ratio Test
+
+```{r}
+logLik(schoolgrade1) ; logLik(schoolgrade2)
+```
+
+Likelyhood Ratio Test : 2×(−3609.568−(−3684.077)) = 2(74.509) , that is 149.018
+
+The more complex model (schoolgrade2) fits significantly better than the simpler model (schoolgrade1).
+
+variance : There are 2 variances level 2: 44.76 level 1: 165.63
+
+Hence ICC : 0.12 This indicates that 21% of the variance in score attainment can be attributed to the differences between schools.
+
+# Random intercept models
+
+## Adding an explanatory variable
+
+we will model the effecr of a student-level variable funding in the model.
+
+grade\_{ij} = \beta\*0 +\* \beta\*1motiv\*{ij} + u{0j} + e\_{ij}
+
+```{r}
+schoolgrade.ri <- lmer(grade ~ motiv + (1 | schoolid), 
+           data = schoolgrade, 
+           REML = FALSE)
+summary(schoolgrade.ri)
+```
+
+```{r}
+tidy(schoolgrade.ri, conf.int = TRUE) %>%
+  kbl %>%
+  kable_styling()
+```
+
+The equation for the average fitted regression line (across school) is
+
+grade\_{ij} = 50.35 + 4.459motiv\_{ij}
+
+Because this is a random intercept model, the intercepts differ. But, the slope is fixed at 4.459.
+
+# Prediction
+
+We can predict the grade attainment based on the mixed model for each student. The prediction is the average fitted regression (average grade) plus the school’s intercept.
+
+This is equal to the average fitted regression line plus the relevant school’s intercept.
+
+```{r}
+pred_score.ri <- fitted(schoolgrade.ri)
+head(pred_score.ri, 10)
+```
+
+The random effects (due to random intercepts) due to school are :
+
+```{r}
+schoolgrade.rand_ef <- ranef(schoolgrade.ri)
+head(schoolgrade.rand_ef$schoolid, 20)
+```
+
+fitted values ( using broom.mixed::augment())
+
+```{r}
+schoolgrade.ri_fitted <- augment(schoolgrade.ri)
+```
+
+```{r}
+schoolgrade.ri_fitted %>% 
+  slice(1:20)
+```
+
+## manual calculation
+
+The grade attainment for students from schoolid = 1st observation,where nested school : Kilsyth Academy, motivation score : 7.74
+
+the intercept = 28.86 level-2 residual (school level residual) = -12.06
+
+grade\_{ij} = \beta\*0 +\* \beta\*1motiv\*{ij} + u{0j} + e\_{ij} grade\_{ij} = 28.865023 + 4.459075\*(7.74) + (-12.6060734)
+
+```{r}
+28.865023 + 4.459075*(7.74) + (-12.6060734) 
+```
+
+## Plot
+
+```{r}
+ggplot(schoolgrade.ri_fitted, aes(motiv, .fitted, group = schoolid )) +
+  geom_point(alpha = 0.5) +
+  geom_line(alpha = 0.5) +
+  ylab('fitted grade attainment') +
+  xlab('motivation score') +
+  ggtitle('The fitted value for random intercept model with covariate motiv') +
+  theme_bw()
+```
+
+## Variance
+
+## Between school variance
+
+in the constant only model the variance is 44.76 then the variance increased after adding motiv where model with motiv as the explanatory variable now has the variance of 73.97
+
+After accounting for motivation score effects, the proportion of unexplained variance that is due to differences between schools increases to 73.97/(73.97+143.52) = 34%
+
+```{r}
+73.97/(73.97+143.52)
+```
+
+## Within school variance
+
+also note that
+
+constant only model variance is 165.63 reduction of variance after adding motiv model with motivation score as the explanatory variable 143.52
+
+we can see that the addition of motivation score has increased the amount of variance at both the school and the student level. The between-school variance has increased from 44.76 to 73.97, and the within-school variance has reduced from 165.63 to 143.52. Motivation score variable reduces unexplained variance at the student level, in addition , effect of between-variance becomes more prominent. Motivation score is an important individual-level predictor. It helps explain why students within the same school differ, and at the same time, it reveals stronger differences between schools once the within-school variation is accounted for.
+
+# Random slope model
+
+Random slope model allows different slope. We will now extend the random intercept model fitted before to allow both the intercept and the slope to vary randomly across schools.
+
+## Model
+
+grade\_{ij} = \beta\*0 +\* \beta\*1motiv\*{ij} + u{0j} + u\_{1j}motiv\_{ij} + e\_{ij}
+
+```{r}
+schoolgrade.rs <- lmer(grade ~ motiv + (1 + motiv | schoolid), 
+           data = schoolgrade, REML = FALSE)
+```
+
+```{r}
+summary(schoolgrade.rs)
+```
+
+The variable remain significance in random slope model
+
+```{r}
+tidy(schoolgrade.rs) %>% kbl() %>%
+  kable_styling()
+```
+
+The fitted (average) score attainment based on the random slope model
+
+```{r}
+schoolgrade.rs_fitted <- augment(schoolgrade.rs)
+head(schoolgrade.rs_fitted, 20)
+```
+
+the average school we predict an increase of 4.465 points in the attainment score for motivation score 0.
+
+# Comparing model between random intercepts and random slope
+
+```{r}
+anova(schoolgrade.ri, schoolgrade.rs)
+```
+
+There is very strong evidence that the motivation score effect differs across schools
+
+# Interpretation of random effects accross school
+
+The motivation score effect for school 𝑗 is estimated as 4.465 + 𝑈̂\_{1𝑗}, and the between-school variance in these slopes is estimated as 3.905.
+
+For the average school we predict an increase of 4.465 points in the grade score for each successive cohort. A 95% coverage interval for the school slopes is estimated as 4.465±1.96 √3.905 = 0.59 to 8.33
+
+Thus, assuming a normal distribution, we would expect the middle 95% of schools to have a slope between 0.59 to 8.33
+
+# Prediction for random slope
+
+```{r}
+schoolgrade.ra.eff.rs <- ranef(schoolgrade.rs, condVar = TRUE)
+datatable(schoolgrade.ra.eff.rs$schoolid)
+
+```
+
+
+
+
+## Plot of random effect
+
+School slope vs school intercept 𝑢0𝑗 and 𝑢1𝑗
+
+```{r}
+plot(schoolgrade.ra.eff.rs)
+```
+
+```{r}
+schoolgrade.ra.eff.rs.sc <- schoolgrade.ra.eff.rs$schoolid 
+names(schoolgrade.ra.eff.rs.sc)
+```
+
+using ggplot2
+
+```{r}
+schoolgrade.ra.eff.rs.sc <- schoolgrade.ra.eff.rs.sc %>%
+  rename(rs_slope = motiv, rs_int = "(Intercept)")
+
+schoolgrade.ra.eff.rs.sc %>% 
+ggplot(aes( x = rs_int, y = rs_slope)) + 
+  geom_point() +
+  geom_vline(xintercept = 0) + 
+  geom_hline(yintercept = 0)
+```
+
+# Model
+
+\widehat{grade}*{ij} = (29.260 +* \hat{u_{0j}}) + (4.465 + \hat{u_{1j}})motiv{ij}
+
+# Plot the fitted values from random slope
+
+```{r}
+datatable(schoolgrade.rs_fitted)
+```
+
+```{r}
+schoolgrade.rs_fitted %>%
+  ggplot(aes(motiv, .fitted, group = schoolid)) +  
+  geom_point(alpha = 0.3) +
+  geom_line(aes(colour = schoolid), alpha = 0.3) +
+  ylab('The fitted grade attainment') +
+  xlab('motivation score') +
+  theme_bw() +
+  ggtitle('The fitted grade attainment for each student against year from random slope model')
+```
+
+## Adding a level-2 explanatory variable to the random slope model
+
+Funding comes in as fixed effect in the model
+
+```{r}
+schoolgrade.rs_funding <- lmer(grade ~ motiv + funding +
+                     (1 + motiv | schoolid), data = schoolgrade,
+                     REML = FALSE, lmerControl(optimizer = 'bobyqa'))
+                      
+summary(schoolgrade.rs_funding)
+```
+
+```{r}
+anova(schoolgrade.rs,schoolgrade.rs_funding)
+```
+
+fundingstate added in the model :schoolgrade.rs_funding. however, results shows covariates is not significant when included in the model. Model comparison is also not significant.thus, the simpler model is chosen.
+
+## Checking Interactions in the random slop model
+
+Inview of adding covariate funding doest not show significant value, we will not proceed with interaction. model comparison also did not increase fitting in the model.
+
+------------------------------------------------------------------------
+
+Final model :
+
+```{r}
+m.schoolgrade <- lmer(grade ~ motiv +
+                     (1 + motiv | schoolid), data = schoolgrade,
+                     REML = FALSE, lmerControl(optimizer = 'bobyqa'))
+                      
+summary(m.schoolgrade)
+```
+
+## Checking Assumptions
+
+```{r}
+res.m.schoolgrade <- augment(m.schoolgrade)
+datatable(res.m.schoolgrade)
+```
+
+## Plot random effect
+
+## Plot 1
+
+```{r}
+library(merTools)
+```
+
+```{r}
+res.m.schoolgrade.plot <- REsim(m.schoolgrade)
+plotREsim(res.m.schoolgrade.plot)
+```
+
+Plot 2 suing lattice package
+
+```{r}
+library(lattice)
+randoms <- ranef(m.schoolgrade , condVar = TRUE)
+dotplot(randoms)
+```
+
+Schools with intercepts further to the right have higher baseline values, while those further to the left have lower baseline values. For example, Stewart Academy has a relatively high intercept compared to Balwearie High School, which has a much lower (negative) intercept. School-specific differences: There is clear variability in the intercepts across different schools, indicating that some schools have generally higher or lower baseline outcomes than others. Effect of "motiv": The "motiv" variable generally appears to have a positive relationship with the outcome across most schools, and this effect seems to be relatively consistent in its direction, although there might be some minor variations in magnitude.
+
+Fitted vs residual
+
+```{r}
+plot(m.schoolgrade)
+```
+
+Normally distributed
+
+```{r}
+library(lattice)
+qqmath(m.schoolgrade)
+```
+
+the points majority clustered around the line, assumption of normality is met
+
+# References
+
+1.  Practical Linear Mixed Models. Kamarul Imran Musa. 25 March 20222.
+2.  [git\@github.com](mailto:git@github.com){.email}:omaralfaruqi/AdvancedstatisticalanalysisGroup3.git
